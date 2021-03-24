@@ -133,7 +133,7 @@ public class ARCamera : MonoBehaviour
 
         m_CameraTexture.Apply();
 
-        if (staticNum > 10)
+        if (staticNum > 5)
         {
             localization = true;
         }
