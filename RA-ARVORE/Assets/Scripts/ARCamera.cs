@@ -16,6 +16,7 @@ public class ARCamera : MonoBehaviour
     private int staticNum = 0;
     private bool isDetecting = false;
     public bool localization = false;
+    public bool searched = false;
     public Detector detector;
     public float shiftY = 0f;
     public float shiftX = 0f;
@@ -58,6 +59,7 @@ public class ARCamera : MonoBehaviour
     {
         Debug.Log("DEBUG: onRefresh, removing anchors and boundingboxes");
         localization = false;
+        searched = false;
         staticNum = 0;
         // clear boubding box containers
         boxSavedOutlines.Clear();
@@ -141,8 +143,11 @@ public class ARCamera : MonoBehaviour
         {
             localization = true;
             buttonInfo.SetActive(true);
-            UpdateInfoPanel(this.boxOutlines[0].Label);
 
+            if (!searched && this.boxOutlines.Count >= 0)
+            {
+                UpdateInfoPanel(this.boxOutlines[0].Label);
+            }
         }
         else
         {
@@ -181,6 +186,8 @@ public class ARCamera : MonoBehaviour
         tipoFolha.text = arvore.tipo_folha;
         informacoesFolha.text = arvore.informacoes_folha;
         arvoresFolha.text = arvore.arvores_folha;
+
+        searched = true;
     }
 
     private IEnumerator ProcessImage(int inputSize, System.Action<Color32[]> callback)
