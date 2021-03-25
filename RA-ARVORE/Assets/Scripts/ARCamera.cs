@@ -44,6 +44,8 @@ public class ARCamera : MonoBehaviour
         set { m_RawImage = value; }
     }
 
+    GameObject buttonInfo;
+
     void OnDisable()
     {
         if (m_CameraManager != null)
@@ -63,6 +65,7 @@ public class ARCamera : MonoBehaviour
         // clear anchor
         AnchorCreator anchorCreator = FindObjectOfType<AnchorCreator>();
         anchorCreator.RemoveAllAnchors();
+        buttonInfo.SetActive(false);
     }
 
     void OnEnable()
@@ -75,6 +78,7 @@ public class ARCamera : MonoBehaviour
         boxOutlineTexture = new Texture2D(1, 1);
         boxOutlineTexture.SetPixel(0, 0, this.colorTag);
         boxOutlineTexture.Apply();
+        buttonInfo = GameObject.Find("ButtonLeafInformation");
 
         labelStyle = new GUIStyle();
         labelStyle.fontSize = 50;
@@ -136,9 +140,14 @@ public class ARCamera : MonoBehaviour
         if (staticNum > 5)
         {
             localization = true;
+            buttonInfo.SetActive(true);
+            UpdateInfoPanel(this.boxOutlines[0].Label);
+
         }
         else
         {
+            buttonInfo.SetActive(false);
+
             if (this.isDetecting)
             {
                 return;
@@ -158,6 +167,20 @@ public class ARCamera : MonoBehaviour
             GroupBoxOutlines();
         }
         m_RawImage.texture = m_CameraTexture;
+    }
+
+    private void UpdateInfoPanel(string formatoFolha)
+    {
+        Text tipoFolha = GameObject.Find("TX_Tipo_Folha").GetComponent<Text>();
+        Text informacoesFolha = GameObject.Find("TX_Informacoes").GetComponent<Text>();
+        Text arvoresFolha = GameObject.Find("TX_Arvores").GetComponent<Text>();
+
+        FolhaService service = GameObject.Find("WebService").GetComponent<FolhaService>();
+        Folha arvore =  service.getArvoreInfo(formatoFolha);
+
+        tipoFolha.text = arvore.tipo_folha;
+        informacoesFolha.text = arvore.informacoes_folha;
+        arvoresFolha.text = arvore.arvores_folha;
     }
 
     private IEnumerator ProcessImage(int inputSize, System.Action<Color32[]> callback)
