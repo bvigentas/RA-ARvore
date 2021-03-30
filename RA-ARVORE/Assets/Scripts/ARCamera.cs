@@ -144,7 +144,7 @@ public class ARCamera : MonoBehaviour
             localization = true;
             buttonInfo.SetActive(true);
 
-            if (!searched && this.boxOutlines.Count >= 0)
+            if (!searched && this.boxOutlines != null && this.boxOutlines.Count >= 0)
             {
                 UpdateInfoPanel(this.boxOutlines[0].Label);
             }

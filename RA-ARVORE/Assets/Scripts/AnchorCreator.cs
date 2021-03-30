@@ -23,6 +23,7 @@ public class AnchorCreator : MonoBehaviour
     public ARRaycastManager m_RaycastManager;
     public TextMesh anchorObj_mesh;
     public ARAnchorManager m_AnchorManager;
+    public ARPlaneManager m_planeManager;
 
     public GameObject prefab
     {
@@ -41,12 +42,19 @@ public class AnchorCreator : MonoBehaviour
         anchorDic.Clear();
     }
 
+    private UIManager m_uiManager;
+
     void Awake()
     {
         m_RaycastManager = GetComponent<ARRaycastManager>();
         m_AnchorManager = GetComponent<ARAnchorManager>();
         GameObject cameraImage = GameObject.Find("Camera");
         aRCamera = cameraImage.GetComponent<ARCamera>();
+        m_planeManager = GetComponent<ARPlaneManager>();
+
+        GameObject canvas = GameObject.Find("Canvas");
+        m_uiManager = canvas.GetComponent<UIManager>();
+
     }
 
     // Update is called once per frame
@@ -57,53 +65,66 @@ public class AnchorCreator : MonoBehaviour
         {
             return;
         }
-
-        boxSavedOutlines = aRCamera.boxSavedOutlines;
-        shiftX = aRCamera.shiftX;
-        shiftY = aRCamera.shiftY;
-        scaleFactor = aRCamera.scaleFactor;
-
-        if (anchorDic.Count != 0)
+        if (m_planeManager)
         {
-            foreach (KeyValuePair<ARAnchor, Detector.BoundingBox> pair in anchorDic)
+            if (m_uiManager.PlanesFound())
             {
-                if (!boxSavedOutlines.Contains(pair.Value))
+                foreach (var planeFound in m_planeManager.trackables)
+                    planeFound.gameObject.SetActive(false);
+
+                boxSavedOutlines = aRCamera.boxSavedOutlines;
+                shiftX = aRCamera.shiftX;
+                shiftY = aRCamera.shiftY;
+                scaleFactor = aRCamera.scaleFactor;
+
+                if (anchorDic.Count != 0)
                 {
-                    anchorDic.Remove(pair.Key);
-                    m_AnchorManager.RemoveAnchor(pair.Key);
-                    s_Hits.Clear();
+                    foreach (KeyValuePair<ARAnchor, Detector.BoundingBox> pair in anchorDic)
+                    {
+                        if (!boxSavedOutlines.Contains(pair.Value))
+                        {
+                            anchorDic.Remove(pair.Key);
+                            m_AnchorManager.RemoveAnchor(pair.Key);
+                            s_Hits.Clear();
+                        }
+                    }
                 }
-            }
-        }
 
-        if (boxSavedOutlines.Count == 0)
-        {
-            return;
-        }
+                if (boxSavedOutlines.Count == 0)
+                {
+                    return;
+                }
 
-        foreach (var outline in boxSavedOutlines)
-        {
-            if (outline.Used)
+                foreach (var outline in boxSavedOutlines)
+                {
+                    if (outline.Used)
+                    {
+                        continue;
+                    }
+
+                    var xMin = outline.Dimensions.X * this.scaleFactor + this.shiftX;
+                    var width = outline.Dimensions.Width * this.scaleFactor;
+                    var yMin = outline.Dimensions.Y * this.scaleFactor + this.shiftY;
+                    yMin = Screen.height - yMin;
+                    var height = outline.Dimensions.Height * this.scaleFactor;
+
+                    float center_x = xMin + width / 2f;
+                    float center_y = yMin - height / 2f;
+
+                    if (Pos2Anchor(center_x, center_y, outline))
+                    {
+                        outline.Used = true;
+
+
+                    }
+                }
+            } else
             {
-                continue;
-            }
-
-            var xMin = outline.Dimensions.X * this.scaleFactor + this.shiftX;
-            var width = outline.Dimensions.Width * this.scaleFactor;
-            var yMin = outline.Dimensions.Y * this.scaleFactor + this.shiftY;
-            yMin = Screen.height - yMin;
-            var height = outline.Dimensions.Height * this.scaleFactor;
-
-            float center_x = xMin + width / 2f;
-            float center_y = yMin - height / 2f;
-
-            if (Pos2Anchor(center_x, center_y, outline))
-            {
-                outline.Used = true;
-
-
+                //Show image to find plane
             }
         }
+
+        
     }
 
     private bool Pos2Anchor(float x, float y, Detector.BoundingBox outline)
@@ -134,8 +155,7 @@ public class AnchorCreator : MonoBehaviour
 
         if (hit.trackable is ARPlane plane)
         {
-            var planeManager = GetComponent<ARPlaneManager>();
-            if (planeManager)
+            if (m_planeManager)
             {
                 var oldPrefab = m_AnchorManager.anchorPrefab;
                 m_AnchorManager.anchorPrefab = prefab;
