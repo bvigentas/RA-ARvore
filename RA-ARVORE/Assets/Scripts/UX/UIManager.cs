@@ -17,6 +17,9 @@ public struct UXHandle
 
 public class UIManager : MonoBehaviour
 {
+
+    public ARCamera aRCamera;
+
     [SerializeField]
     bool m_StartWithInstructionalUI = true;
 
@@ -97,6 +100,9 @@ public class UIManager : MonoBehaviour
     {
         ARUXAnimationManager.onFadeOffComplete += FadeComplete;
 
+        GameObject cameraImage = GameObject.Find("Camera");
+        aRCamera = cameraImage.GetComponent<ARCamera>();
+
         GetManagers();
         m_UXOrderedQueue = new Queue<UXHandle>();
 
@@ -114,28 +120,31 @@ public class UIManager : MonoBehaviour
     void Update()
     {
 
-        if (m_UXOrderedQueue.Count > 0 && !m_ProcessingInstructions)
+        if (aRCamera.localization)
         {
-            // pop off
-            m_CurrentHandle = m_UXOrderedQueue.Dequeue();
-
-            // fade on
-            FadeOnInstructionalUI(m_CurrentHandle.InstructionalUI);
-            m_GoalReached = GetGoal(m_CurrentHandle.Goal);
-            m_ProcessingInstructions = true;
-            m_FadedOff = false;
-        }
-
-        if (m_ProcessingInstructions)
-        {
-            // start listening for goal reached
-            if (m_GoalReached.Invoke())
+            if (m_UXOrderedQueue.Count > 0 && !m_ProcessingInstructions)
             {
-                // if goal reached, fade off
-                if (!m_FadedOff)
+                // pop off
+                m_CurrentHandle = m_UXOrderedQueue.Dequeue();
+
+                // fade on
+                FadeOnInstructionalUI(m_CurrentHandle.InstructionalUI);
+                m_GoalReached = GetGoal(m_CurrentHandle.Goal);
+                m_ProcessingInstructions = true;
+                m_FadedOff = false;
+            }
+
+            if (m_ProcessingInstructions)
+            {
+                // start listening for goal reached
+                if (m_GoalReached.Invoke())
                 {
-                    m_FadedOff = true;
-                    m_AnimationManager.FadeOffCurrentUI();
+                    // if goal reached, fade off
+                    if (!m_FadedOff)
+                    {
+                        m_FadedOff = true;
+                        m_AnimationManager.FadeOffCurrentUI();
+                    }
                 }
             }
         }
@@ -181,7 +190,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    bool PlanesFound()
+    public bool PlanesFound()
     {
         return m_PlaneManager?.trackables.count > 0;
     }

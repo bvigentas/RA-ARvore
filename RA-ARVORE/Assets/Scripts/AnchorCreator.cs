@@ -42,6 +42,8 @@ public class AnchorCreator : MonoBehaviour
         anchorDic.Clear();
     }
 
+    private UIManager m_uiManager;
+
     void Awake()
     {
         m_RaycastManager = GetComponent<ARRaycastManager>();
@@ -49,6 +51,10 @@ public class AnchorCreator : MonoBehaviour
         GameObject cameraImage = GameObject.Find("Camera");
         aRCamera = cameraImage.GetComponent<ARCamera>();
         m_planeManager = GetComponent<ARPlaneManager>();
+
+        GameObject canvas = GameObject.Find("Canvas");
+        m_uiManager = canvas.GetComponent<UIManager>();
+
     }
 
     // Update is called once per frame
@@ -61,7 +67,7 @@ public class AnchorCreator : MonoBehaviour
         }
         if (m_planeManager)
         {
-            if (m_planeManager.trackables.count > 0)
+            if (m_uiManager.PlanesFound())
             {
                 foreach (var planeFound in m_planeManager.trackables)
                     planeFound.gameObject.SetActive(false);
