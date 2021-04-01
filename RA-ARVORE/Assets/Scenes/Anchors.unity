@@ -2344,9 +2344,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59881fcc154d7054d924e5f0ebaade58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modelFile: {fileID: 5022602860645237092, guid: fd3a363ed5963d64a857960613dbdb75,
+  modelFile: {fileID: 5022602860645237092, guid: 406f59b99d7fe2b4b8068b4a4fe3d127,
     type: 3}
-  labelsFile: {fileID: 4900000, guid: d06264d53a9a0cf40ab79bd2bcd724b4, type: 3}
+  labelsFile: {fileID: 4900000, guid: 4d5b037309bfec946a9f599372665b86, type: 3}
   INPUT_NAME: 000_net
   OUTPUT_NAME_L: 016_convolutional
   OUTPUT_NAME_M: 023_convolutional
