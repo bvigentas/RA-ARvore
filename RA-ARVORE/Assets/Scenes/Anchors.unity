@@ -2344,14 +2344,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59881fcc154d7054d924e5f0ebaade58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modelFile: {fileID: 5022602860645237092, guid: 406f59b99d7fe2b4b8068b4a4fe3d127,
+  modelFile: {fileID: 5022602860645237092, guid: 13541f660cb4d004ba1cd900a49a9067,
     type: 3}
   labelsFile: {fileID: 4900000, guid: 4d5b037309bfec946a9f599372665b86, type: 3}
   INPUT_NAME: 000_net
   OUTPUT_NAME_L: 016_convolutional
   OUTPUT_NAME_M: 023_convolutional
   MINIMUM_CONFIDENCE: 0.25
-  CLASS_COUNT: 80
+  CLASS_COUNT: 16
 --- !u!4 &1644216947
 Transform:
   m_ObjectHideFlags: 0
