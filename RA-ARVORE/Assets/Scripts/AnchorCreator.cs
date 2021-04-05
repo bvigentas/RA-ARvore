@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.SceneManagement;
 
 
 [RequireComponent(typeof(ARAnchorManager))]
@@ -9,7 +10,27 @@ using UnityEngine.XR.ARFoundation;
 public class AnchorCreator : MonoBehaviour
 {
     [SerializeField]
-    GameObject m_Prefab;
+    List<GameObject> m_Prefab;
+
+    Dictionary<string, int> dicPreFab = new Dictionary<string, int>
+    {
+        {"trofolio", 0},
+        {"tripinulada", 1},
+        {"bipinulada", 2},
+        {"codiforme", 3},
+        {"flabelada", 4},
+        {"orbicular", 5},
+        {"romboide", 6},
+        {"multilobada", 7},
+        {"deltoide", 8},
+        {"lobada", 9},
+        {"cuneiforme", 10},
+        {"linear", 11},
+        {"ovada", 12},
+        {"pinulada", 13},
+        {"espalmada", 14},
+        {"acicular", 15}
+    };
 
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
 
@@ -25,7 +46,7 @@ public class AnchorCreator : MonoBehaviour
     public ARAnchorManager m_AnchorManager;
     public ARPlaneManager m_planeManager;
 
-    public GameObject prefab
+    public List<GameObject> prefab
     {
         get => m_Prefab;
         set => m_Prefab = value;
@@ -40,6 +61,7 @@ public class AnchorCreator : MonoBehaviour
         }
         s_Hits.Clear();
         anchorDic.Clear();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private UIManager m_uiManager;
@@ -158,13 +180,13 @@ public class AnchorCreator : MonoBehaviour
             if (m_planeManager)
             {
                 var oldPrefab = m_AnchorManager.anchorPrefab;
-                m_AnchorManager.anchorPrefab = prefab;
+                m_AnchorManager.anchorPrefab = prefab[dicPreFab[aRCamera.foundedLeafString]];
                 anchor = m_AnchorManager.AttachAnchor(plane, hit.pose);
                 m_AnchorManager.anchorPrefab = oldPrefab;
                 return anchor;
             }
         }
-        var gameObject = Instantiate(prefab, hit.pose.position, hit.pose.rotation);
+        var gameObject = Instantiate(prefab[dicPreFab[aRCamera.foundedLeafString]], hit.pose.position, hit.pose.rotation);
 
         anchor = gameObject.GetComponent<ARAnchor>();
         if (anchor == null)

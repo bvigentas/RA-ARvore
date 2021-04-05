@@ -24,6 +24,24 @@ public class ARCamera : MonoBehaviour
     public Color colorTag = new Color(0.3843137f, 0, 0.9333333f);
     private static Texture2D boxOutlineTexture;
     private static GUIStyle labelStyle;
+    public string foundedLeafString;
+
+    public string GetMostConfidentBoudingBoxName()
+    {
+        var name = "";
+        var bestConf = 0.0;
+
+        foreach (var box in this.boxOutlines)
+        {
+            if (box.Confidence > bestConf)
+            {
+                bestConf = box.Confidence;
+                name = box.Label;
+            }
+        }
+
+        return name;
+    }
 
     Texture2D m_CameraTexture;
 
@@ -146,7 +164,8 @@ public class ARCamera : MonoBehaviour
 
             if (!searched && this.boxOutlines != null && this.boxOutlines.Count >= 0)
             {
-                UpdateInfoPanel(this.boxOutlines[0].Label);
+                foundedLeafString = GetMostConfidentBoudingBoxName();
+                UpdateInfoPanel(foundedLeafString);
             }
         }
         else
