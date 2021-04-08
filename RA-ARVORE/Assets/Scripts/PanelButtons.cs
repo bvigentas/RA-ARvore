@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PanelButtons : MonoBehaviour
 {
+
     GameObject panel;
     Animation animation;
     void Start()
