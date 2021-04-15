@@ -332,7 +332,8 @@ public class Detector : MonoBehaviour
 
     private float[] anchors = new float[]
     {
-        10F, 14F,  23F, 27F,  37F, 58F,  81F, 82F,  135F, 169F,  344F, 319F // yolov3-tiny
+        //10F, 14F,  23F, 27F,  37F, 58F,  81F, 82F,  135F, 169F,  344F, 319F // yolov3-tiny
+        1.46F,1.63F, 3.43F,4.17F, 5.43F,6.02F, 6.65F,1.93F, 8.04F,7.69F, 9.97F,10.43F
     };
 
 
