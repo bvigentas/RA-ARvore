@@ -64,6 +64,7 @@ public class ARCamera : MonoBehaviour
     }
 
     GameObject buttonInfo;
+    GameObject buttonScreenshot;
 
     void OnDisable()
     {
@@ -86,6 +87,7 @@ public class ARCamera : MonoBehaviour
         AnchorCreator anchorCreator = FindObjectOfType<AnchorCreator>();
         anchorCreator.RemoveAllAnchors();
         buttonInfo.SetActive(false);
+        buttonScreenshot.SetActive(false);
     }
 
     void OnEnable()
@@ -99,6 +101,7 @@ public class ARCamera : MonoBehaviour
         boxOutlineTexture.SetPixel(0, 0, this.colorTag);
         boxOutlineTexture.Apply();
         buttonInfo = GameObject.Find("ButtonLeafInformation");
+        buttonScreenshot = GameObject.Find("ButtonScreenshot");
 
         labelStyle = new GUIStyle();
         labelStyle.fontSize = 50;
@@ -161,6 +164,7 @@ public class ARCamera : MonoBehaviour
         {
             localization = true;
             buttonInfo.SetActive(true);
+            buttonScreenshot.SetActive(true);
 
             if (!searched && this.boxOutlines != null && this.boxOutlines.Count >= 0)
             {
@@ -171,6 +175,7 @@ public class ARCamera : MonoBehaviour
         else
         {
             buttonInfo.SetActive(false);
+            buttonScreenshot.SetActive(false);
 
             if (this.isDetecting)
             {
@@ -244,7 +249,8 @@ public class ARCamera : MonoBehaviour
         foreach (var outline1 in this.boxOutlines)
         {
             bool unique = true;
-            foreach (var outline2 in this.boxSavedOutlines)
+            var boxCopy = this.boxSavedOutlines;
+            foreach (var outline2 in boxCopy)
             {
                 // if two bounding boxes are for the same object, use high confidnece one
                 if (IsSameObject(outline1, outline2))

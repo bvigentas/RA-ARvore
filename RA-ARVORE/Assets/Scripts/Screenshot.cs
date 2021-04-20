@@ -4,21 +4,24 @@ using UnityEngine;
 
 public class Screenshot : MonoBehaviour
 {
-
-    [SerializeField]
-    GameObject blink;
     public void buttonScreenShot()
     {
-        StartCoroutine("CaptureScreen");
+        var timestamp = System.DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss");
+        string fileName = "ARvore-Screenshot-" + timestamp;
+        StartCoroutine(TakeScreenshot());
     }
 
-    IEnumerator CaptureScreen()
+    private IEnumerator TakeScreenshot()
     {
-        var timestamp = System.DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss");
-        string fileName = "ARvore" + timestamp + ".png";
-        string savePath = fileName;
-        ScreenCapture.CaptureScreenshot(savePath);
         yield return new WaitForEndOfFrame();
-        Instantiate(blink, new Vector2(0f, 0f), Quaternion.identity);
+
+        Texture2D ss = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+        ss.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+        ss.Apply();
+
+        var timestamp = System.DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss");
+        string fileName = "ARvore-Screenshot-" + timestamp;
+
+        NativeGallery.SaveImageToGallery(ss, "ARvore Screenshots", fileName);
     }
 }
