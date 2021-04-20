@@ -81,7 +81,6 @@ public class AnchorCreator : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log("Update in action");
         if (!aRCamera.localization)
         {
             return;

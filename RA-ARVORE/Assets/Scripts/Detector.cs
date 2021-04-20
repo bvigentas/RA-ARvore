@@ -410,7 +410,6 @@ public class Detector : MonoBehaviour
                     float[] predictedClasses = ExtractClasses(yoloModelOutput, cx, cy, channel);
                     var (topResultIndex, topResultScore) = GetTopResult(predictedClasses);
                     var topScore = topResultScore * confidence;
-                    Debug.Log("DEBUG: results: " + topResultIndex.ToString());
 
                     if (topScore < threshold)
                     {
