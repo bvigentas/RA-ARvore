@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using TMPro;
 
 
 [RequireComponent(typeof(ARAnchorManager))]
@@ -135,12 +137,8 @@ public class AnchorCreator : MonoBehaviour
                     {
                         outline.Used = true;
 
-
                     }
                 }
-            } else
-            {
-                //Show image to find plane
             }
         }
 
@@ -161,12 +159,27 @@ public class AnchorCreator : MonoBehaviour
             {
                 // Remember the anchor so we can remove it later.
                 anchorDic.Add(anchor, outline);
+                UpdateInfoPanel(aRCamera.foundedLeafString);
                 return true;
             }
 
             return false;
         }
         return false;
+    }
+
+    private void UpdateInfoPanel(string formatoFolha)
+    {
+        TextMeshPro tipoFolha = GameObject.Find("Texto_Forma").GetComponent<TextMeshPro>();
+        TextMeshPro informacoesFolha = GameObject.Find("Texto_Descricao").GetComponent<TextMeshPro>();
+        TextMeshPro arvoresFolha = GameObject.Find("Texto_Arvore").GetComponent<TextMeshPro>();
+
+        FolhaService service = GameObject.Find("WebService").GetComponent<FolhaService>();
+        Folha arvore = service.getArvoreInfo(formatoFolha);
+
+        tipoFolha.SetText(arvore.tipo_folha);
+        informacoesFolha.SetText(arvore.informacoes_folha);
+        arvoresFolha.SetText(arvore.arvores_folha);
     }
 
     ARAnchor CreateAnchor(in ARRaycastHit hit)
@@ -181,6 +194,7 @@ public class AnchorCreator : MonoBehaviour
                 m_AnchorManager.anchorPrefab = prefab[dicPreFab.IndexOf(aRCamera.foundedLeafString)];
                 anchor = m_AnchorManager.AttachAnchor(plane, hit.pose);
                 m_AnchorManager.anchorPrefab = oldPrefab;
+                //UpdateInfoPanel(aRCamera.foundedLeafString);
                 return anchor;
             }
         }

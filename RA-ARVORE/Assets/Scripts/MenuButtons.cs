@@ -17,4 +17,9 @@ public class MenuButtons : MonoBehaviour
     {
         SceneManager.LoadScene("MainMenu");
     }
+
+    public void buttonFolhasAction()
+    {
+        SceneManager.LoadScene("Folhas");
+    }
 }

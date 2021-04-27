@@ -15,11 +15,20 @@ public class PanelButtons : MonoBehaviour
 
     public void buttonPopupAction()
     {
-        animation.Play("PanelPopUp");
+        //animation.Play("PanelPopUp");
+        //GameObject banner = GameObject.FindGameObjectWithTag("BannerMain");
+        //if (banner.activeSelf)
+        //{
+        //    banner.SetActive(false);
+        //} else
+        //{
+        //    banner.SetActive(true);
+        //}
+        
     }
 
     public void buttonCloseAction()
     {
-        animation.Play("PanelClose");
+        //animation.Play("PanelClose");
     }
 }
