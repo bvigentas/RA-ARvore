@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - BannerMain
+  - LeafHint
+  - LeafInput
   layers:
   - Default
   - TransparentFX

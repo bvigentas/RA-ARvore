@@ -65,6 +65,7 @@ public class ARCamera : MonoBehaviour
 
     GameObject buttonInfo;
     GameObject buttonScreenshot;
+    GameObject buttonValidar;
 
     void OnDisable()
     {
@@ -88,6 +89,7 @@ public class ARCamera : MonoBehaviour
         anchorCreator.RemoveAllAnchors();
         buttonInfo.SetActive(false);
         buttonScreenshot.SetActive(false);
+        buttonValidar.SetActive(false);
     }
 
     void OnEnable()
@@ -102,6 +104,7 @@ public class ARCamera : MonoBehaviour
         boxOutlineTexture.Apply();
         buttonInfo = GameObject.Find("ButtonLeafInformation");
         buttonScreenshot = GameObject.Find("ButtonScreenshot");
+        buttonValidar = GameObject.Find("ButtonValidar");
 
         labelStyle = new GUIStyle();
         labelStyle.fontSize = 50;
@@ -165,6 +168,7 @@ public class ARCamera : MonoBehaviour
             localization = true;
             buttonInfo.SetActive(true);
             buttonScreenshot.SetActive(true);
+            buttonValidar.SetActive(true);
 
             if (!searched && this.boxOutlines != null && this.boxOutlines.Count >= 0)
             {
@@ -176,6 +180,7 @@ public class ARCamera : MonoBehaviour
         {
             buttonInfo.SetActive(false);
             buttonScreenshot.SetActive(false);
+            buttonValidar.SetActive(false);
 
             if (this.isDetecting)
             {
