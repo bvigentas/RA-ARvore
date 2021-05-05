@@ -11,7 +11,7 @@ public class Quiz : MonoBehaviour
 {
     public void buttonValidar()
     {
-        GameObject[] hints = GameObject.FindGameObjectsWithTag("LeafHint");
+        GameObject[] hints = Configurations.hints;
         GameObject[] inputs = GameObject.FindGameObjectsWithTag("LeafInput");
         List<string> erros = new List<string>();
 

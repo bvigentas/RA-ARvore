@@ -5,6 +5,7 @@ using UnityEngine;
 public class Configurations : MonoBehaviour
 {
     public static bool quizMode;
+    public static GameObject[] hints;
 
     public void Start()
     {

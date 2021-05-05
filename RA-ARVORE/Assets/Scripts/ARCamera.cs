@@ -8,6 +8,7 @@ using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using System.Collections;
 using UnityEngine.XR.ARFoundation.Samples;
+using UnityEngine.XR.ARCore;
 
 public class ARCamera : MonoBehaviour
 {
@@ -90,6 +91,9 @@ public class ARCamera : MonoBehaviour
         buttonInfo.SetActive(false);
         buttonScreenshot.SetActive(false);
         buttonValidar.SetActive(false);
+
+        ARSession arSession = GetComponent<ARSession>();
+        arSession.Reset();
     }
 
     void OnEnable()
@@ -168,7 +172,10 @@ public class ARCamera : MonoBehaviour
             localization = true;
             buttonInfo.SetActive(true);
             buttonScreenshot.SetActive(true);
-            buttonValidar.SetActive(true);
+            if (Configurations.quizMode)
+            {
+                buttonValidar.SetActive(true);
+            }
 
             if (!searched && this.boxOutlines != null && this.boxOutlines.Count >= 0)
             {
@@ -368,8 +375,8 @@ public class ARCamera : MonoBehaviour
         var y = outline.Dimensions.Y * scaleFactor + shiftY;
         var height = outline.Dimensions.Height * scaleFactor;
 
-        DrawRectangle(new Rect(x, y, width, height), 10, this.colorTag);
-        DrawLabel(new Rect(x, y - 80, 200, 20), $"Localizing {outline.Label}: {(int)(outline.Confidence * 100)}%");
+       // DrawRectangle(new Rect(x, y, width, height), 10, this.colorTag);
+        DrawLabel(new Rect(x, y - 80, 200, 20), $"Mantenha-se estável.\n Localizando {outline.Label}: {(int)(outline.Confidence * 100)}%");
     }
 
     public static void DrawRectangle(Rect area, int frameWidth, Color color)
@@ -392,7 +399,15 @@ public class ARCamera : MonoBehaviour
 
     private static void DrawLabel(Rect position, string text)
     {
-        GUI.Label(position, text, labelStyle);
+        //GUI.Label(position, text, labelStyle);
+
+        GUI.color = Color.blue;
+        GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "");
+        GUI.color = Color.white;
+        var centeredStyle = GUI.skin.GetStyle("Label");
+        centeredStyle.alignment = TextAnchor.MiddleCenter;
+        centeredStyle.fontSize = 50;
+        GUI.Label(new Rect(Screen.width / 2 - 250, Screen.height / 2 - 100, 500, 200), text, centeredStyle);
     }
 
     private Texture2D Scale(Texture2D texture, int imageSize)

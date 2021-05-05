@@ -10,6 +10,8 @@ public class SelectMode : MonoBehaviour
         GameObject[] hints = GameObject.FindGameObjectsWithTag("LeafHint");
         GameObject[] inputs = GameObject.FindGameObjectsWithTag("LeafInput");
 
+        Configurations.hints = hints;
+
         if (Configurations.quizMode)
         {
             for (var i = 0; i < inputs.Length; i ++)

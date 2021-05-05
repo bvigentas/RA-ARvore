@@ -2736,9 +2736,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1760703bbd54c04488a8d10600262ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_PlanePrefab: {fileID: 1568414836858200, guid: f0e0be81472ff1243aa2afa27e5d0e61,
-    type: 3}
-  m_DetectionMode: -1
+  m_PlanePrefab: {fileID: 0}
+  m_DetectionMode: 1
 --- !u!114 &1335839538
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2752,22 +2751,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Prefab:
-  - {fileID: 8298380295666843851, guid: 7513131783037c8439293902c5b28fba, type: 3}
-  - {fileID: 7126438110277710968, guid: decc756bccbfd4c45a5f16f1b2d7e9b0, type: 3}
-  - {fileID: 7126438110277710968, guid: decc756bccbfd4c45a5f16f1b2d7e9b0, type: 3}
-  - {fileID: 4768308429890417685, guid: 3a50a5a93789b0a4aab169586a1b71c9, type: 3}
-  - {fileID: 4846525050913473375, guid: b1fabade2b6162e4ea6ef2811da05dc7, type: 3}
-  - {fileID: 9202301838763633842, guid: a31fa2ea643a52f4a9835ba45fa748cb, type: 3}
-  - {fileID: 6253210900184129981, guid: f915c1d6910628b4d80027870fedd29e, type: 3}
-  - {fileID: 4141504823078654832, guid: 8927394afefaaef4980fdf82f290e948, type: 3}
-  - {fileID: 3108730947407271523, guid: 72581c6e56487ae4ebdca967efebd889, type: 3}
+  - {fileID: 9130174847429756267, guid: 9e9d9fa1ec3e9384db582a002cc82887, type: 3}
+  - {fileID: 1984261956746829112, guid: 22292e2ba2769054eb3be5502e8dbbca, type: 3}
+  - {fileID: 1984261956746829112, guid: 22292e2ba2769054eb3be5502e8dbbca, type: 3}
+  - {fileID: 3583927480063799718, guid: 5420fa0979a5d2c498d2e6dc1254e27f, type: 3}
+  - {fileID: 2011177157703678242, guid: 8a40ee746720c854a9d34a3c84b3f660, type: 3}
+  - {fileID: 2342248623014039948, guid: ed385d33c8e96274dbbc1940242327b3, type: 3}
+  - {fileID: 7764468887633329915, guid: 78e45efc07f883f43b3b097264f90ce9, type: 3}
+  - {fileID: 6134607598079087025, guid: 405917ac3dbe03a45ba1d0cdae32324c, type: 3}
+  - {fileID: 7059962219439624196, guid: 82b9356a600ac954887958ce7e553d00, type: 3}
   - {fileID: 4141504823078654832, guid: 37d46b3a6932ba0489045cf467ad3682, type: 3}
   - {fileID: 1362899771367802, guid: 48e43bbe3af404986bbdc5a552e5fefd, type: 3}
-  - {fileID: 151307340594464466, guid: 267aa89ca5989024c860ef6d035c1caa, type: 3}
-  - {fileID: 9171458455034165360, guid: fbf76b4f597077146b7d6a720f3c3da0, type: 3}
-  - {fileID: 2663994389669198927, guid: 1d0ad515d5b01eb48b2f8f68ee81d14b, type: 3}
-  - {fileID: 3675360817041300730, guid: 288206ee2a65c3a4e8e8e27ca5659dff, type: 3}
-  - {fileID: 8390234989027973060, guid: dd37dee3ed7076d4a9bc38b4bf8b5a29, type: 3}
+  - {fileID: 6005049818946649130, guid: 962e7fdbaf392d74b9783ca47bed01e9, type: 3}
+  - {fileID: 5403553832485045470, guid: 9afe1d2f4e08a0a40b285261b912e673, type: 3}
+  - {fileID: 4685536370723683632, guid: 053a668621263fd4eaf010905a918555, type: 3}
+  - {fileID: 4496666750366432777, guid: 39de363ea10d59b4697a836669d91552, type: 3}
+  - {fileID: 8375634187445231332, guid: cd6012646c0705240a33453a2e460c82, type: 3}
   aRCamera: {fileID: 405753936}
   m_RaycastManager: {fileID: 1335839539}
   anchorObj_mesh: {fileID: 0}
