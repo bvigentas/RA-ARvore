@@ -6,6 +6,8 @@ using TMPro;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
+using System.Globalization;
 
 public class Quiz : MonoBehaviour
 {
@@ -20,7 +22,7 @@ public class Quiz : MonoBehaviour
             var hint = hints[i].GetComponent<TextMeshPro>();
             var input = inputs[i].GetComponent<TMP_InputField>();
 
-            if (!string.Equals(hint.text, input.text, StringComparison.InvariantCultureIgnoreCase))
+            if (!string.Equals(RemoveAccents(hint.text), RemoveAccents(input.text), StringComparison.InvariantCultureIgnoreCase))
             {
                 erros.Add("Você colocou '" + input.text + "' mas o correto é '" + hint.text + "'.\n");
             }
@@ -43,6 +45,18 @@ public class Quiz : MonoBehaviour
             StartCoroutine(ShowCanvas(canvasGroup));
 
         }
+    }
+
+    private string RemoveAccents(string text)
+    {
+        StringBuilder sbReturn = new StringBuilder();
+        var arrayText = text.Normalize(NormalizationForm.FormD).ToCharArray();
+        foreach (char letter in arrayText)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(letter) != UnicodeCategory.NonSpacingMark)
+                sbReturn.Append(letter);
+        }
+        return sbReturn.ToString();
     }
 
     IEnumerator ShowCanvas(CanvasGroup canvas)
