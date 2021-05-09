@@ -711,7 +711,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1652259231}
         m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
-        m_MethodName: buttonFolhasAction
+        m_MethodName: buttonLeafsAction
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1246,7 +1246,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1652259231}
         m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
-        m_MethodName: buttonIniciarAction
+        m_MethodName: buttonBeginAction
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

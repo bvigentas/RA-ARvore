@@ -820,14 +820,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a31de9c52cc98844bd065e2ba37c312, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  localization: 0
-  searched: 0
-  detector: {fileID: 0}
+  foundedLeafString: 
   shiftY: 0
   shiftX: 0
   scaleFactor: 1
+  localization: 0
+  searched: 0
+  detector: {fileID: 0}
   colorTag: {r: 0.3843137, g: 0, b: 0.9333333, a: 1}
-  foundedLeafString: 
   m_CameraManager: {fileID: 282840816}
   m_RawImage: {fileID: 192067826}
 --- !u!4 &405753937
@@ -942,7 +942,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 419014562}
         m_TargetAssemblyTypeName: Quiz, Assembly-CSharp
-        m_MethodName: buttonValidar
+        m_MethodName: buttonValidate
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1622,7 +1622,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 616511804}
         m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
-        m_MethodName: buttonAboutVoltarAction
+        m_MethodName: buttonBackToMenuAction
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2750,6 +2750,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f68fbc98b9133456f8a212911c899469, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  aRCamera: {fileID: 405753936}
+  m_RaycastManager: {fileID: 1335839539}
+  anchorObj_mesh: {fileID: 0}
+  m_AnchorManager: {fileID: 1335839540}
+  m_planeManager: {fileID: 0}
   m_Prefab:
   - {fileID: 9130174847429756267, guid: 9e9d9fa1ec3e9384db582a002cc82887, type: 3}
   - {fileID: 1984261956746829112, guid: 22292e2ba2769054eb3be5502e8dbbca, type: 3}
@@ -2767,11 +2772,6 @@ MonoBehaviour:
   - {fileID: 4685536370723683632, guid: 053a668621263fd4eaf010905a918555, type: 3}
   - {fileID: 4496666750366432777, guid: 39de363ea10d59b4697a836669d91552, type: 3}
   - {fileID: 8375634187445231332, guid: cd6012646c0705240a33453a2e460c82, type: 3}
-  aRCamera: {fileID: 405753936}
-  m_RaycastManager: {fileID: 1335839539}
-  anchorObj_mesh: {fileID: 0}
-  m_AnchorManager: {fileID: 1335839540}
-  m_planeManager: {fileID: 0}
 --- !u!114 &1335839539
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3616,8 +3616,8 @@ MonoBehaviour:
   INPUT_NAME: 000_net
   OUTPUT_NAME_L: 016_convolutional
   OUTPUT_NAME_M: 023_convolutional
-  MINIMUM_CONFIDENCE: 0.25
   CLASS_COUNT: 16
+  MINIMUM_CONFIDENCE: 0.25
 --- !u!4 &1644216947
 Transform:
   m_ObjectHideFlags: 0

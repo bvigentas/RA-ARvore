@@ -7,8 +7,8 @@ public class SelectMode : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        GameObject[] hints = GameObject.FindGameObjectsWithTag("LeafHint");
-        GameObject[] inputs = GameObject.FindGameObjectsWithTag("LeafInput");
+        var hints = GameObject.FindGameObjectsWithTag("LeafHint");
+        var inputs = GameObject.FindGameObjectsWithTag("LeafInput");
 
         Configurations.hints = hints;
 

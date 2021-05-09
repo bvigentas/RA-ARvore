@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class MenuButtons : MonoBehaviour
 {
-    public void buttonIniciarAction()
+    public void buttonBeginAction()
     {
         SceneManager.LoadScene("Anchors");
     }
@@ -13,12 +13,12 @@ public class MenuButtons : MonoBehaviour
         SceneManager.LoadScene("About");
     }
 
-    public void buttonAboutVoltarAction()
+    public void buttonBackToMenuAction()
     {
         SceneManager.LoadScene("MainMenu");
     }
 
-    public void buttonFolhasAction()
+    public void buttonLeafsAction()
     {
         SceneManager.LoadScene("Folhas");
     }

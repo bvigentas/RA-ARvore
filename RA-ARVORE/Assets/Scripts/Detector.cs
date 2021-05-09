@@ -12,37 +12,24 @@ public class Detector : MonoBehaviour
 {
     public NNModel modelFile;
     public TextAsset labelsFile;
-
-    private const int IMAGE_MEAN = 0;
-    private const float IMAGE_STD = 255.0F;
-
-    // ONNX model input and output name. Modify when switching models.
-    //These aren't const values because they need to be easily edited on the component before play mode
-
     public string INPUT_NAME;
     public string OUTPUT_NAME_L;
     public string OUTPUT_NAME_M;
-
-    //This has to stay a const
-    private const int _image_size = 416;
+    public int CLASS_COUNT;
+    public float MINIMUM_CONFIDENCE = 0.25f;
     public int IMAGE_SIZE { get => _image_size; }
 
-    // Minimum detection confidence to track a detection
-    public float MINIMUM_CONFIDENCE = 0.25f;
-
-    private IWorker worker;
-    public Dictionary<string, int> params_l = new Dictionary<string, int>() { { "ROW_COUNT", 13 }, { "COL_COUNT", 13 }, { "CELL_WIDTH", 32 }, { "CELL_HEIGHT", 32 } };
-    public Dictionary<string, int> params_m = new Dictionary<string, int>() { { "ROW_COUNT", 26 }, { "COL_COUNT", 26 }, { "CELL_WIDTH", 16 }, { "CELL_HEIGHT", 16 } };
+    private string[] labels;
+    private const int _image_size = 416;
     public const int BOXES_PER_CELL = 3;
     public const int BOX_INFO_FEATURE_COUNT = 5;
+    private IWorker worker;
 
-    //Update this!
-    public int CLASS_COUNT;
-    private string[] labels;
+    public Dictionary<string, int> params_l = new Dictionary<string, int>() { { "ROW_COUNT", 13 }, { "COL_COUNT", 13 }, { "CELL_WIDTH", 32 }, { "CELL_HEIGHT", 32 } };
+    public Dictionary<string, int> params_m = new Dictionary<string, int>() { { "ROW_COUNT", 26 }, { "COL_COUNT", 26 }, { "CELL_WIDTH", 16 }, { "CELL_HEIGHT", 16 } };
 
     private float[] anchors = new float[]
     {
-        //10F, 14F,  23F, 27F,  37F, 58F,  81F, 82F,  135F, 169F,  344F, 319F // yolov3-tiny
         1.46F,1.63F, 3.43F,4.17F, 5.43F,6.02F, 6.65F,1.93F, 8.04F,7.69F, 9.97F,10.43F
     };
 
@@ -52,25 +39,19 @@ public class Detector : MonoBehaviour
         this.labels = Regex.Split(this.labelsFile.text, "\n|\r|\r\n")
             .Where(s => !String.IsNullOrEmpty(s)).ToArray();
         var model = ModelLoader.Load(this.modelFile);
-        // https://docs.unity3d.com/Packages/com.unity.barracuda@1.0/manual/Worker.html
-        //These checks all check for GPU before CPU as GPU is preferred if the platform + rendering pipeline support it
         this.worker = GraphicsWorker.GetWorker(model);
     }
 
-
-
-
     public IEnumerator Detect(Color32[] picture, System.Action<IList<BoundingBox>> callback)
     {
-        using (var tensor = TransformInput(picture, IMAGE_SIZE, IMAGE_SIZE))
+        using (var tensor = BarracudaHelper.CreateTensorFromPicuture(picture, IMAGE_SIZE, IMAGE_SIZE))
         {
             var inputs = new Dictionary<string, Tensor>();
             inputs.Add(INPUT_NAME, tensor);
             yield return StartCoroutine(worker.StartManualSchedule(inputs));
-            //worker.Execute(inputs);
             var output_l = worker.PeekOutput(OUTPUT_NAME_L);
             var output_m = worker.PeekOutput(OUTPUT_NAME_M);
-            //Debug.Log("Output: " + output);
+
             var results_l = ParseOutputs(output_l, MINIMUM_CONFIDENCE, params_l);
             var results_m = ParseOutputs(output_m, MINIMUM_CONFIDENCE, params_m);
             var results = results_l.Concat(results_m).ToList();
@@ -78,24 +59,6 @@ public class Detector : MonoBehaviour
             var boxes = FilterBoundingBoxes(results, 1, MINIMUM_CONFIDENCE);
             callback(boxes);
         }
-    }
-
-
-    //Colocar em barracuda helper
-    public static Tensor TransformInput(Color32[] pic, int width, int height)
-    {
-        float[] floatValues = new float[width * height * 3];
-
-        for (int i = 0; i < pic.Length; ++i)
-        {
-            var color = pic[i];
-
-            floatValues[i * 3 + 0] = (color.r - IMAGE_MEAN) / IMAGE_STD;
-            floatValues[i * 3 + 1] = (color.g - IMAGE_MEAN) / IMAGE_STD;
-            floatValues[i * 3 + 2] = (color.b - IMAGE_MEAN) / IMAGE_STD;
-        }
-
-        return new Tensor(1, height, width, 3, floatValues);
     }
 
 
@@ -111,14 +74,14 @@ public class Detector : MonoBehaviour
                 {
                     var channel = (box * (CLASS_COUNT + BOX_INFO_FEATURE_COUNT));
                     var bbd = ExtractBoundingBoxDimensions(yoloModelOutput, cx, cy, channel);
-                    float confidence = GetConfidence(yoloModelOutput, cx, cy, channel);
+                    var confidence = GetConfidence(yoloModelOutput, cx, cy, channel);
 
                     if (confidence < threshold)
                     {
                         continue;
                     }
 
-                    float[] predictedClasses = ExtractClasses(yoloModelOutput, cx, cy, channel);
+                    var predictedClasses = ExtractClasses(yoloModelOutput, cx, cy, channel);
                     var (topResultIndex, topResultScore) = GetTopResult(predictedClasses);
                     var topScore = topResultScore * confidence;
 
@@ -128,46 +91,13 @@ public class Detector : MonoBehaviour
                     }
 
                     var mappedBoundingBox = MapBoundingBoxToCell(cx, cy, box, bbd, parameters);
-                    boxes.Add(new BoundingBox
-                    {
-                        Dimensions = new BoundingBoxDimensions
-                        {
-                            X = (mappedBoundingBox.X - mappedBoundingBox.Width / 2),
-                            Y = (mappedBoundingBox.Y - mappedBoundingBox.Height / 2),
-                            Width = mappedBoundingBox.Width,
-                            Height = mappedBoundingBox.Height,
-                        },
-                        Confidence = topScore,
-                        Label = labels[topResultIndex],
-                        Used = false
-                    });
+                    boxes.Add(BuildBoudingBox(topResultIndex, topScore, mappedBoundingBox));
                 }
             }
         }
 
         return boxes;
     }
-
-
-    //Colocar em Barracuda Helper
-    private float Sigmoid(float value)
-    {
-        var k = (float)Math.Exp(value);
-
-        return k / (1.0f + k);
-    }
-
-
-    ///Colocar em Barracuda Helper
-    private float[] Softmax(float[] values)
-    {
-        var maxVal = values.Max();
-        var exp = values.Select(v => Math.Exp(v - maxVal));
-        var sumExp = exp.Sum();
-
-        return exp.Select(v => (float)(v / sumExp)).ToArray();
-    }
-
 
     private BoundingBoxDimensions ExtractBoundingBoxDimensions(Tensor modelOutput, int x, int y, int channel)
     {
@@ -183,8 +113,7 @@ public class Detector : MonoBehaviour
 
     private float GetConfidence(Tensor modelOutput, int x, int y, int channel)
     {
-        //Debug.Log("ModelOutput " + modelOutput);
-        return Sigmoid(modelOutput[0, x, y, channel + 4]);
+        return BarracudaHelper.Sigmoid(modelOutput[0, x, y, channel + 4]);
     }
 
 
@@ -192,8 +121,8 @@ public class Detector : MonoBehaviour
     {
         return new CellDimensions
         {
-            X = ((float)y + Sigmoid(boxDimensions.X)) * parameters["CELL_WIDTH"],
-            Y = ((float)x + Sigmoid(boxDimensions.Y)) * parameters["CELL_HEIGHT"],
+            X = ((float)y + BarracudaHelper.Sigmoid(boxDimensions.X)) * parameters["CELL_WIDTH"],
+            Y = ((float)x + BarracudaHelper.Sigmoid(boxDimensions.Y)) * parameters["CELL_HEIGHT"],
             Width = (float)Math.Exp(boxDimensions.Width) * anchors[6 + box * 2],
             Height = (float)Math.Exp(boxDimensions.Height) * anchors[6 + box * 2 + 1],
         };
@@ -202,15 +131,15 @@ public class Detector : MonoBehaviour
 
     public float[] ExtractClasses(Tensor modelOutput, int x, int y, int channel)
     {
-        float[] predictedClasses = new float[CLASS_COUNT];
-        int predictedClassOffset = channel + BOX_INFO_FEATURE_COUNT;
+        var predictedClasses = new float[CLASS_COUNT];
+        var predictedClassOffset = channel + BOX_INFO_FEATURE_COUNT;
 
         for (int predictedClass = 0; predictedClass < CLASS_COUNT; predictedClass++)
         {
             predictedClasses[predictedClass] = modelOutput[0, x, y, predictedClass + predictedClassOffset];
         }
 
-        return Softmax(predictedClasses);
+        return BarracudaHelper.Softmax(predictedClasses);
     }
 
 
@@ -225,26 +154,41 @@ public class Detector : MonoBehaviour
 
     private float IntersectionOverUnion(Rect boundingBoxA, Rect boundingBoxB)
     {
-        var areaA = boundingBoxA.width * boundingBoxA.height;
+        float areaA = CalculateArea(boundingBoxA);
 
         if (areaA <= 0)
             return 0;
 
-        var areaB = boundingBoxB.width * boundingBoxB.height;
+        var areaB = CalculateArea(boundingBoxB);
 
         if (areaB <= 0)
             return 0;
 
+        float intersectionArea = CalculateIntersectionArea(boundingBoxA, boundingBoxB);
+        float unionArea = CalculateUnionArea(areaA + areaB, intersectionArea);
+        return intersectionArea / unionArea;
+    }
+
+    private static float CalculateArea(Rect boundingBox)
+    {
+        return boundingBox.width * boundingBox.height;
+    }
+
+    private static float CalculateUnionArea(float boudingBoxesArea, float intersectionArea)
+    {
+        return boudingBoxesArea - intersectionArea;
+    }
+
+    private static float CalculateIntersectionArea(Rect boundingBoxA, Rect boundingBoxB)
+    {
         var minX = Math.Max(boundingBoxA.xMin, boundingBoxB.xMin);
         var minY = Math.Max(boundingBoxA.yMin, boundingBoxB.yMin);
         var maxX = Math.Min(boundingBoxA.xMax, boundingBoxB.xMax);
         var maxY = Math.Min(boundingBoxA.yMax, boundingBoxB.yMax);
 
         var intersectionArea = Math.Max(maxY - minY, 0) * Math.Max(maxX - minX, 0);
-
-        return intersectionArea / (areaA + areaB - intersectionArea);
+        return intersectionArea;
     }
-
 
     private IList<BoundingBox> FilterBoundingBoxes(IList<BoundingBox> boxes, int limit, float threshold)
     {
@@ -296,40 +240,25 @@ public class Detector : MonoBehaviour
         return results;
     }
 
-
-    //Separa tudo para baixo em uma classe separada.
-    class CellDimensions : DimensionsBase { }
-
-    public class BoundingBox
+    private BoundingBox BuildBoudingBox(int topResultIndex, float topScore, CellDimensions mappedBoundingBox)
     {
-        public BoundingBoxDimensions Dimensions { get; set; }
-
-        public string Label { get; set; }
-
-        public float Confidence { get; set; }
-
-        // whether the bounding box already is used to raycast anchors
-        public bool Used { get; set; }
-
-        public Rect Rect
+        return new BoundingBox
         {
-            get { return new Rect(Dimensions.X, Dimensions.Y, Dimensions.Width, Dimensions.Height); }
-        }
-
-        public override string ToString()
-        {
-            return $"{Label}:{Confidence}, {Dimensions.X}:{Dimensions.Y} - {Dimensions.Width}:{Dimensions.Height}";
-        }
+            Dimensions = BuildBoudingBoxDimensions(mappedBoundingBox),
+            Confidence = topScore,
+            Label = labels[topResultIndex],
+            Used = false
+        };
     }
 
-    public class DimensionsBase
+    private static BoundingBoxDimensions BuildBoudingBoxDimensions(CellDimensions mappedBoundingBox)
     {
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float Height { get; set; }
-        public float Width { get; set; }
+        return new BoundingBoxDimensions
+        {
+            X = (mappedBoundingBox.X - mappedBoundingBox.Width / 2),
+            Y = (mappedBoundingBox.Y - mappedBoundingBox.Height / 2),
+            Width = mappedBoundingBox.Width,
+            Height = mappedBoundingBox.Height,
+        };
     }
-
-
-    public class BoundingBoxDimensions : DimensionsBase { }
 }

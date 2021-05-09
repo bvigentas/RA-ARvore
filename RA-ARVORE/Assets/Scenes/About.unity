@@ -392,7 +392,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1667468491}
         m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
-        m_MethodName: buttonAboutVoltarAction
+        m_MethodName: buttonBackToMenuAction
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

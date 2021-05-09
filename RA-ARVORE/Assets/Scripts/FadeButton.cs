@@ -29,10 +29,10 @@ public class FadeButton : MonoBehaviour
 
     IEnumerator Fade(bool fadeIn, string leaf)
     {
-        CanvasGroup canvasGroup = GetComponent<CanvasGroup>();
+        var canvasGroup = GetComponent<CanvasGroup>();
         if (leaf != "")
         {
-            Text textComponent = GameObject.Find("TextLeaf").GetComponent<Text>();
+            var textComponent = GameObject.Find("TextLeaf").GetComponent<Text>();
             textComponent.text = leaf;
             var index = leafs.IndexOf(leaf);
             var image = images.ElementAt(index);

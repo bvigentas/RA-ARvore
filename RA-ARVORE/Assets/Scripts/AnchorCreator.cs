@@ -4,33 +4,40 @@ using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Linq;
 using TMPro;
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using Unity.Barracuda;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 [RequireComponent(typeof(ARAnchorManager))]
 [RequireComponent(typeof(ARRaycastManager))]
 public class AnchorCreator : MonoBehaviour
 {
-    [SerializeField]
-    List<GameObject> m_Prefab;
-
-    List<string> dicPreFab = new List<string>();
-
-    static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
-
-    IDictionary<ARAnchor, Detector.BoundingBox> anchorDic = new Dictionary<ARAnchor, Detector.BoundingBox>();
-    private List<Detector.BoundingBox> boxSavedOutlines;
-    private float shiftX;
-    private float shiftY;
-    private float scaleFactor;
-    private bool modelAlreadyRendered;
-
     public ARCamera aRCamera;
     public ARRaycastManager m_RaycastManager;
     public TextMesh anchorObj_mesh;
     public ARAnchorManager m_AnchorManager;
     public ARPlaneManager m_planeManager;
 
+    private List<BoundingBox> boxSavedOutlines;
+    private float shiftX;
+    private float shiftY;
+    private float scaleFactor;
+    private bool modelAlreadyRendered;
+    private UIManager m_uiManager;
+    static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
+
+    List<string> dicPreFab = new List<string>();
+    IDictionary<ARAnchor, BoundingBox> anchorDic = new Dictionary<ARAnchor, BoundingBox>();
+
+    [SerializeField] List<GameObject> m_Prefab;
     public List<GameObject> prefab
     {
         get => m_Prefab;
@@ -40,7 +47,6 @@ public class AnchorCreator : MonoBehaviour
     public void RemoveAllAnchors()
     {
         modelAlreadyRendered = false;
-        Debug.Log($"DEBUG: Removing all anchors ({anchorDic.Count})");
         foreach (var anchor in anchorDic)
         {
             Destroy(anchor.Key.gameObject);
@@ -50,7 +56,6 @@ public class AnchorCreator : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    private UIManager m_uiManager;
 
     void Awake()
     {
@@ -83,90 +88,107 @@ public class AnchorCreator : MonoBehaviour
 
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (!aRCamera.localization)
+        if (NotDetectedYet())
         {
             return;
         }
-        if (m_planeManager)
+
+        if (PlanesFoundAndModelNotRenderedYet())
         {
-            if (m_uiManager.PlanesFound())
+            //foreach (var planeFound in m_planeManager.trackables)
+            //    planeFound.gameObject.SetActive(false);
+
+            boxSavedOutlines = aRCamera.boxSavedOutlines;
+            shiftX = aRCamera.shiftX;
+            shiftY = aRCamera.shiftY;
+            scaleFactor = aRCamera.scaleFactor;
+
+            RemoveOldAnchorsNotBeingUsed();
+
+            if (NoBoudingBoxesFound())
             {
-                if (!modelAlreadyRendered)
+                return;
+            }
+
+            foreach (var outline in boxSavedOutlines)
+            {
+                if (outline.Used)
                 {
-                    foreach (var planeFound in m_planeManager.trackables)
-                        planeFound.gameObject.SetActive(false);
+                    continue;
+                }
 
-                    boxSavedOutlines = aRCamera.boxSavedOutlines;
-                    shiftX = aRCamera.shiftX;
-                    shiftY = aRCamera.shiftY;
-                    scaleFactor = aRCamera.scaleFactor;
+                var tuple = FindCenterXandY(outline);
 
-                    if (anchorDic.Count != 0)
-                    {
-                        foreach (KeyValuePair<ARAnchor, Detector.BoundingBox> pair in anchorDic)
-                        {
-                            if (!boxSavedOutlines.Contains(pair.Value))
-                            {
-                                anchorDic.Remove(pair.Key);
-                                m_AnchorManager.RemoveAnchor(pair.Key);
-                                s_Hits.Clear();
-                            }
-                        }
-                    }
+                if (CreateAnchorInPosition(tuple.Item1, tuple.Item2, outline))
+                {
+                    outline.Used = true;
+                }
 
-                    if (boxSavedOutlines.Count == 0)
-                    {
-                        return;
-                    }
+                break;
+            }
+        }
+    }
 
-                    foreach (var outline in boxSavedOutlines)
-                    {
-                        if (outline.Used)
-                        {
-                            continue;
-                        }
 
-                        var xMin = outline.Dimensions.X * this.scaleFactor + this.shiftX;
-                        var width = outline.Dimensions.Width * this.scaleFactor;
-                        var yMin = outline.Dimensions.Y * this.scaleFactor + this.shiftY;
-                        yMin = Screen.height - yMin;
-                        var height = outline.Dimensions.Height * this.scaleFactor;
+    private Tuple<float, float> FindCenterXandY(BoundingBox outline)
+    {
+        var xMin = outline.Dimensions.X * this.scaleFactor + this.shiftX;
+        var width = outline.Dimensions.Width * this.scaleFactor;
+        var yMin = outline.Dimensions.Y * this.scaleFactor + this.shiftY;
+        yMin = Screen.height - yMin;
+        var height = outline.Dimensions.Height * this.scaleFactor;
 
-                        float center_x = xMin + width / 2f;
-                        float center_y = yMin - height / 2f;
+        var center_x = xMin + width / 2f;
+        var center_y = yMin - height / 2f;
 
-                        if (Pos2Anchor(center_x, center_y, outline))
-                        {
-                            outline.Used = true;
-                        }
+        return Tuple.Create(center_x, center_y);
+    }
 
-                        break;
-                    }
+    private void RemoveOldAnchorsNotBeingUsed()
+    {
+        if (anchorDic.Count != 0)
+        {
+            foreach (KeyValuePair<ARAnchor, BoundingBox> pair in anchorDic)
+            {
+                if (!boxSavedOutlines.Contains(pair.Value))
+                {
+                    anchorDic.Remove(pair.Key);
+                    m_AnchorManager.RemoveAnchor(pair.Key);
+                    s_Hits.Clear();
                 }
             }
         }
-
-        
     }
 
-    private bool Pos2Anchor(float x, float y, Detector.BoundingBox outline)
+    private bool NoBoudingBoxesFound()
     {
-        const TrackableType trackableTypes =
-            TrackableType.FeaturePoint |
-            TrackableType.PlaneWithinPolygon;
+        return boxSavedOutlines.Count == 0;
+    }
 
-        if (m_RaycastManager.Raycast(new Vector2(x, y), s_Hits, trackableTypes))
+    private bool NotDetectedYet()
+    {
+        return !aRCamera.localization;
+    }
+
+    private bool PlanesFoundAndModelNotRenderedYet()
+    {
+        return m_planeManager && m_uiManager.PlanesFound() && !modelAlreadyRendered;
+    }
+
+    private bool CreateAnchorInPosition(float x, float y, BoundingBox outline)
+    {
+        const TrackableType trackableTypes = TrackableType.FeaturePoint | TrackableType.PlaneWithinPolygon;
+
+        if (VerifyIfPointIntersectsWithPlanes(x, y, trackableTypes))
         {
             var hit = s_Hits[0];
             var anchor = CreateAnchor(hit);
             if (anchor)
             {
-                // Remember the anchor so we can remove it later.
-                anchorDic.Add(anchor, outline);
-                UpdateInfoPanel(aRCamera.foundedLeafString);
+                SaveAnchor(outline, anchor);
+                StartCoroutine(UpdateInfoPanel(aRCamera.foundedLeafString));
                 return true;
             }
 
@@ -175,18 +197,31 @@ public class AnchorCreator : MonoBehaviour
         return false;
     }
 
-    private void UpdateInfoPanel(string formatoFolha)
+    private bool VerifyIfPointIntersectsWithPlanes(float x, float y, TrackableType trackableTypes)
     {
-        TextMeshPro tipoFolha = GameObject.Find("Texto_Forma").GetComponent<TextMeshPro>();
-        TextMeshPro informacoesFolha = GameObject.Find("Texto_Descricao").GetComponent<TextMeshPro>();
-        TextMeshPro arvoresFolha = GameObject.Find("Texto_Arvore").GetComponent<TextMeshPro>();
+        return m_RaycastManager.Raycast(new Vector2(x, y), s_Hits, trackableTypes);
+    }
 
-        FolhaService service = GameObject.Find("WebService").GetComponent<FolhaService>();
-        Folha arvore = service.getArvoreInfo(formatoFolha);
+    private void SaveAnchor(BoundingBox outline, ARAnchor anchor)
+    {
+        anchorDic.Add(anchor, outline);
+    }
 
-        tipoFolha.SetText(arvore.tipo_folha);
-        informacoesFolha.SetText(arvore.informacoes_folha);
-        arvoresFolha.SetText(arvore.arvores_folha);
+    private IEnumerator UpdateInfoPanel(string leafFormat)
+    {
+        var leafType = GameObject.Find("Texto_Forma").GetComponent<TextMeshPro>();
+        var leafInformation = GameObject.Find("Texto_Descricao").GetComponent<TextMeshPro>();
+        var treesWithThisLeaf = GameObject.Find("Texto_Arvore").GetComponent<TextMeshPro>();
+
+        var service = GameObject.Find("WebService").GetComponent<FolhaService>();
+        var tree = service.getArvoreInfo(leafFormat);
+        yield return null;
+
+        leafType.SetText(tree.tipo_folha);
+        leafInformation.SetText(tree.informacoes_folha);
+        treesWithThisLeaf.SetText(tree.arvores_folha);
+
+        
     }
 
     ARAnchor CreateAnchor(in ARRaycastHit hit)
@@ -197,14 +232,24 @@ public class AnchorCreator : MonoBehaviour
         {
             if (m_planeManager)
             {
-                var oldPrefab = m_AnchorManager.anchorPrefab;
-                m_AnchorManager.anchorPrefab = prefab[dicPreFab.IndexOf(aRCamera.foundedLeafString)];
-                anchor = m_AnchorManager.AttachAnchor(plane, hit.pose);
-                m_AnchorManager.anchorPrefab = oldPrefab;
-                modelAlreadyRendered = true;
-                return anchor;
+                return UppdatePrefabAndAttachAnchorToPlane(hit, out anchor, plane);
             }
         }
+        return CreateAnchorWithoutBeingAttachToPlanes(hit, out anchor);
+    }
+
+    private ARAnchor UppdatePrefabAndAttachAnchorToPlane(ARRaycastHit hit, out ARAnchor anchor, ARPlane plane)
+    {
+        var oldPrefab = m_AnchorManager.anchorPrefab;
+        m_AnchorManager.anchorPrefab = prefab[dicPreFab.IndexOf(aRCamera.foundedLeafString)];
+        anchor = m_AnchorManager.AttachAnchor(plane, hit.pose);
+        m_AnchorManager.anchorPrefab = oldPrefab;
+        modelAlreadyRendered = true;
+        return anchor;
+    }
+
+    private ARAnchor CreateAnchorWithoutBeingAttachToPlanes(ARRaycastHit hit, out ARAnchor anchor)
+    {
         var gameObject = Instantiate(prefab[dicPreFab.IndexOf(aRCamera.foundedLeafString)], hit.pose.position, hit.pose.rotation);
 
         anchor = gameObject.GetComponent<ARAnchor>();

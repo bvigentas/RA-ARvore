@@ -11,11 +11,11 @@ using System.Globalization;
 
 public class Quiz : MonoBehaviour
 {
-    public void buttonValidar()
+    public void buttonValidate()
     {
-        GameObject[] hints = Configurations.hints;
-        GameObject[] inputs = GameObject.FindGameObjectsWithTag("LeafInput");
-        List<string> erros = new List<string>();
+        var hints = Configurations.hints;
+        var inputs = GameObject.FindGameObjectsWithTag("LeafInput");
+        var erros = new List<string>();
 
         for (var i = 0; i < hints.Length; i++)
         {
@@ -49,7 +49,7 @@ public class Quiz : MonoBehaviour
 
     private string RemoveAccents(string text)
     {
-        StringBuilder sbReturn = new StringBuilder();
+        var sbReturn = new StringBuilder();
         var arrayText = text.Normalize(NormalizationForm.FormD).ToCharArray();
         foreach (char letter in arrayText)
         {

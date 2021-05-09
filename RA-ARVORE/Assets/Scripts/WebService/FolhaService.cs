@@ -9,11 +9,11 @@ public class FolhaService : MonoBehaviour
     {
         try
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(String.Format("https://apirvore.herokuapp.com/api/folha/{0}", nomeCientifico));
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            StreamReader reader = new StreamReader(response.GetResponseStream());
-            string jsonResponse = reader.ReadToEnd();
-            Folha arvoreInfo = JsonUtility.FromJson<Folha>(jsonResponse);
+            var request = (HttpWebRequest)WebRequest.Create(String.Format("https://apirvore.herokuapp.com/api/folha/{0}", nomeCientifico));
+            var response = (HttpWebResponse)request.GetResponse();
+            var reader = new StreamReader(response.GetResponseStream());
+            var jsonResponse = reader.ReadToEnd();
+            var arvoreInfo = JsonUtility.FromJson<Folha>(jsonResponse);
             return arvoreInfo;
         }
         catch (WebException e)
