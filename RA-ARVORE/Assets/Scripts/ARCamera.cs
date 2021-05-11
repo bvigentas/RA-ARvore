@@ -22,11 +22,11 @@ public class ARCamera : MonoBehaviour
     private int staticNum = 0;
 
     public Detector detector;
-    public List<BoundingBox> boxSavedOutlines = new List<BoundingBox>();
+    public List<BoundingBox> boxOutlinesFromAllFrames = new List<BoundingBox>();
     public Color colorTag = new Color(0.3843137f, 0, 0.9333333f);
     private static Texture2D boxOutlineTexture;
     private static GUIStyle labelStyle;
-    private IList<BoundingBox> boxOutlines;
+    private IList<BoundingBox> boxOutlinesFromThisFrame;
     private GameObject buttonInformation;
     private GameObject buttonScreenshot;
     private GameObject buttonValidate;
@@ -48,19 +48,7 @@ public class ARCamera : MonoBehaviour
 
     public string GetMostConfidentBoudingBoxName()
     {
-        //var name = "";
-        //var bestConf = 0.0;
-
-        var box = this.boxOutlines.OrderByDescending(box => box.Confidence).First();
-        //foreach (var box in this.boxOutlines)
-        //{
-        //    if (box.Confidence > bestConf)
-        //    {
-        //        bestConf = box.Confidence;
-        //        name = box.Label;
-        //    }
-        //}
-
+        var box = this.boxOutlinesFromThisFrame.OrderByDescending(box => box.Confidence).First();
         return box.Label;
     }
 
@@ -72,15 +60,15 @@ public class ARCamera : MonoBehaviour
         }
     }
 
+
+    //Método responsável por resetar componentes ao restartar a aplicação.
     public void OnRefresh()
     {
         localization = false;
         searched = false;
         staticNum = 0;
-        // clear boubding box containers
-        boxSavedOutlines.Clear();
-        boxOutlines.Clear();
-        // clear anchor
+        boxOutlinesFromAllFrames.Clear();
+        boxOutlinesFromThisFrame.Clear();
         AnchorCreator anchorCreator = FindObjectOfType<AnchorCreator>();
         anchorCreator.RemoveAllAnchors();
         buttonInformation.SetActive(false);
@@ -91,6 +79,7 @@ public class ARCamera : MonoBehaviour
         arSession.Reset();
     }
 
+    //Realiza configurações iniciais ao começar a aplicação.
     void OnEnable()
     {
         if (m_CameraManager != null)
@@ -149,7 +138,7 @@ public class ARCamera : MonoBehaviour
             localization = true;
             EnableButtons();
 
-            if (!searched && this.boxOutlines != null && this.boxOutlines.Count >= 0)
+            if (!searched && this.boxOutlinesFromThisFrame != null && this.boxOutlinesFromThisFrame.Count >= 0)
             {
                 foundedLeafString = GetMostConfidentBoudingBoxName();
             }
@@ -171,6 +160,8 @@ public class ARCamera : MonoBehaviour
         m_RawImage.texture = m_CameraTexture;
     }
 
+
+    //Faz alguns processamentos iniciais na imagem, convertento a imagem em uma textura RGB para  ser processada mais facilmente para a rotina de detecção.
     private unsafe void PreProcessCurrentImageFrame(XRCpuImage image)
     {
         var format = TextureFormat.RGBA32;
@@ -223,7 +214,7 @@ public class ARCamera : MonoBehaviour
         {
             StartCoroutine(this.detector.Detect(result, boxes =>
             {
-                this.boxOutlines = boxes;
+                this.boxOutlinesFromThisFrame = boxes;
                 Resources.UnloadUnusedAssets();
                 this.isDetecting = false;
             }));
@@ -242,58 +233,49 @@ public class ARCamera : MonoBehaviour
         yield return croped;
     }
 
+    //Método que filtra bouding boxes adicionando e filtrando as bouding boxes de vários frames. 
     private void GroupBoxOutlines()
     {
-        // if savedoutlines is empty, add current frame outlines if possible.
-        if (this.boxSavedOutlines.Count == 0)
+        if (this.boxOutlinesFromAllFrames.Count == 0)
         {
-            // no bounding boxes in current frame
-            if (this.boxOutlines == null || this.boxOutlines.Count == 0)
+            if (this.boxOutlinesFromThisFrame == null || this.boxOutlinesFromThisFrame.Count == 0)
             {
                 return;
             }
-            // deep copy current frame bounding boxes
-            foreach (var outline in this.boxOutlines)
+            foreach (var outline in this.boxOutlinesFromThisFrame)
             {
-                this.boxSavedOutlines.Add(outline);
+                this.boxOutlinesFromAllFrames.Add(outline);
             }
             return;
         }
 
-        // adding current frame outlines to existing savedOulines and merge if possible.
         bool addOutline = false;
-        foreach (var outline1 in this.boxOutlines)
+        foreach (var outline1 in this.boxOutlinesFromThisFrame)
         {
             bool unique = true;
-            var boxCopy = this.boxSavedOutlines;
+            var boxCopy = this.boxOutlinesFromAllFrames;
             foreach (var outline2 in boxCopy)
             {
-                // if two bounding boxes are for the same object, use high confidnece one
+
                 if (IsSameObject(outline1, outline2))
                 {
                     unique = false;
-                    if (outline1.Confidence > outline2.Confidence + 0.05F) //& outline2.Confidence < 0.5F)
+                    if (outline1.Confidence > outline2.Confidence + 0.05F)
                     {
-                        Debug.Log("DEBUG: add detected boxes in this frame.");
-                        Debug.Log($"DEBUG: Add Label: {outline1.Label}. Confidence: {outline1.Confidence}.");
-                        Debug.Log($"DEBUG: Remove Label: {outline2.Label}. Confidence: {outline2.Confidence}.");
-
-                        this.boxSavedOutlines.Remove(outline2);
-                        this.boxSavedOutlines.Add(outline1);
+                        this.boxOutlinesFromAllFrames.Remove(outline2);
+                        this.boxOutlinesFromAllFrames.Add(outline1);
                         addOutline = true;
                         staticNum = 0;
                         break;
                     }
                 }
             }
-            // if outline1 in current frame is unique, add it permanently
+
             if (unique)
             {
-                Debug.Log($"DEBUG: add detected boxes in this frame");
                 addOutline = true;
                 staticNum = 0;
-                this.boxSavedOutlines.Add(outline1);
-                Debug.Log($"Add Label: {outline1.Label}. Confidence: {outline1.Confidence}.");
+                this.boxOutlinesFromAllFrames.Add(outline1);
             }
         }
         if (!addOutline)
@@ -301,36 +283,36 @@ public class ARCamera : MonoBehaviour
             staticNum += 1;
         }
 
-        // merge same bounding boxes
-        // remove will cause duplicated bounding box?
-        List<BoundingBox> temp = new List<BoundingBox>();
-        foreach (var outline1 in this.boxSavedOutlines)
-        {
-            if (temp.Count == 0)
-            {
-                temp.Add(outline1);
-                continue;
-            }
-            foreach (var outline2 in temp.ToList())
-            {
-                if (IsSameObject(outline1, outline2))
-                {
-                    if (outline1.Confidence > outline2.Confidence)
-                    {
-                        temp.Remove(outline2);
-                        temp.Add(outline1);
-                        Debug.Log("DEBUG: merge bounding box conflict!!!");
-                    }
-                }
-                else
-                {
-                    temp.Add(outline1);
-                }
-            }
-        }
-        this.boxSavedOutlines = temp;
+
+        //List<BoundingBox> temp = new List<BoundingBox>();
+        //foreach (var outline1 in this.boxOutlinesFromAllFrames)
+        //{
+        //    if (temp.Count == 0)
+        //    {
+        //        temp.Add(outline1);
+        //        continue;
+        //    }
+        //    foreach (var outline2 in temp.ToList())
+        //    {
+        //        if (IsSameObject(outline1, outline2))
+        //        {
+        //            if (outline1.Confidence > outline2.Confidence)
+        //            {
+        //                temp.Remove(outline2);
+        //                temp.Add(outline1);
+        //                Debug.Log("DEBUG: merge bounding box conflict!!!");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            temp.Add(outline1);
+        //        }
+        //    }
+        //}
+        //this.boxOutlinesFromAllFrames = temp;
     }
 
+    //Compara dois objetos para ver se são iguais, caso for o que tem o maior score de confidence é utilizado.
     private bool IsSameObject(BoundingBox outline1, BoundingBox outline2)
     {
         var xMin1 = outline1.Dimensions.X * this.scaleFactor + this.shiftX;
@@ -357,18 +339,15 @@ public class ARCamera : MonoBehaviour
 
     public void OnGUI()
     {
-        // Do not draw bounding boxes after localization.
         if (localization)
         {
             return;
         }
 
-        if (this.boxSavedOutlines != null && this.boxSavedOutlines.Any())
+        if (this.boxOutlinesFromAllFrames != null && this.boxOutlinesFromAllFrames.Any())
         {
-            foreach (var outline in this.boxSavedOutlines)
-            {
-                DrawLocalizingText($"Mantenha-se estável.\n Localizando {outline.Label}: {(int)(outline.Confidence * 100)}%");
-            }
+            var box = this.boxOutlinesFromAllFrames.OrderByDescending(box => box.Confidence).First();
+            DrawLocalizingText($"Mantenha-se estável.\n Localizando {box.Label}: {(int)(box.Confidence * 100)}%");
         }
     }
 

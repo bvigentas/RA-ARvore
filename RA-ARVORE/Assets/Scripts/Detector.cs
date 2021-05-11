@@ -61,7 +61,7 @@ public class Detector : MonoBehaviour
         }
     }
 
-
+    //Analisa saídas e extrai as bouding boxes resultados
     private IList<BoundingBox> ParseOutputs(Tensor yoloModelOutput, float threshold, Dictionary<string, int> parameters)
     {
         var boxes = new List<BoundingBox>();
@@ -152,6 +152,7 @@ public class Detector : MonoBehaviour
     }
 
 
+    //Realiza o método Intersect Over union. Intersection / Union. Para então fazer a junção de bouding boxes similares.
     private float IntersectionOverUnion(Rect boundingBoxA, Rect boundingBoxB)
     {
         float areaA = CalculateArea(boundingBoxA);
@@ -190,6 +191,7 @@ public class Detector : MonoBehaviour
         return intersectionArea;
     }
 
+    //Filtra as boduing boxes vendo juntando as que se tratam do mesmo objeto e retirando as que não estão ativas.
     private IList<BoundingBox> FilterBoundingBoxes(IList<BoundingBox> boxes, int limit, float threshold)
     {
         var activeCount = boxes.Count;

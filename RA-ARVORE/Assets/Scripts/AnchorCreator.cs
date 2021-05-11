@@ -44,6 +44,7 @@ public class AnchorCreator : MonoBehaviour
         set => m_Prefab = value;
     }
 
+    //Método que limpa todos os componentes para restartar a aplicação.
     public void RemoveAllAnchors()
     {
         modelAlreadyRendered = false;
@@ -57,6 +58,7 @@ public class AnchorCreator : MonoBehaviour
     }
 
 
+    //Invocado ao iniciar a aplicação, faz algumas configurações iniciais.
     void Awake()
     {
         modelAlreadyRendered = false;
@@ -97,10 +99,7 @@ public class AnchorCreator : MonoBehaviour
 
         if (PlanesFoundAndModelNotRenderedYet())
         {
-            //foreach (var planeFound in m_planeManager.trackables)
-            //    planeFound.gameObject.SetActive(false);
-
-            boxSavedOutlines = aRCamera.boxSavedOutlines;
+            boxSavedOutlines = aRCamera.boxOutlinesFromAllFrames;
             shiftX = aRCamera.shiftX;
             shiftY = aRCamera.shiftY;
             scaleFactor = aRCamera.scaleFactor;
@@ -146,6 +145,7 @@ public class AnchorCreator : MonoBehaviour
         return Tuple.Create(center_x, center_y);
     }
 
+    //Remove as ancoras que não estão na coleção de ancoras ativas e portanto não estão sendo usadas.
     private void RemoveOldAnchorsNotBeingUsed()
     {
         if (anchorDic.Count != 0)
@@ -172,6 +172,7 @@ public class AnchorCreator : MonoBehaviour
         return !aRCamera.localization;
     }
 
+    //Faz algumas verificações pare ver se deve continuar com a rotina para colocar o modelo 3D na tela.
     private bool PlanesFoundAndModelNotRenderedYet()
     {
         return m_planeManager && m_uiManager.PlanesFound() && !modelAlreadyRendered;
@@ -188,7 +189,7 @@ public class AnchorCreator : MonoBehaviour
             if (anchor)
             {
                 SaveAnchor(outline, anchor);
-                StartCoroutine(UpdateInfoPanel(aRCamera.foundedLeafString));
+                UpdateInfoPanel(aRCamera.foundedLeafString);
                 return true;
             }
 
@@ -207,15 +208,13 @@ public class AnchorCreator : MonoBehaviour
         anchorDic.Add(anchor, outline);
     }
 
-    private IEnumerator UpdateInfoPanel(string leafFormat)
+    private void UpdateInfoPanel(string leafFormat)
     {
         var leafType = GameObject.Find("Texto_Forma").GetComponent<TextMeshPro>();
         var leafInformation = GameObject.Find("Texto_Descricao").GetComponent<TextMeshPro>();
         var treesWithThisLeaf = GameObject.Find("Texto_Arvore").GetComponent<TextMeshPro>();
 
-        var service = GameObject.Find("WebService").GetComponent<FolhaService>();
-        var tree = service.getArvoreInfo(leafFormat);
-        yield return null;
+        var tree = LeafInfos.GetFolha(leafFormat);
 
         leafType.SetText(tree.tipo_folha);
         leafInformation.SetText(tree.informacoes_folha);
