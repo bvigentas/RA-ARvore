@@ -26,7 +26,8 @@ public class AnchorCreator : MonoBehaviour
     public ARAnchorManager m_AnchorManager;
     public ARPlaneManager m_planeManager;
 
-    private List<BoundingBox> boxSavedOutlines;
+    private BoundingBox actualBox;
+
     private float shiftX;
     private float shiftY;
     private float scaleFactor;
@@ -99,7 +100,7 @@ public class AnchorCreator : MonoBehaviour
 
         if (PlanesFoundAndModelNotRenderedYet())
         {
-            boxSavedOutlines = aRCamera.boxOutlinesFromAllFrames;
+            actualBox = aRCamera.boxOutlinesFromAllFrames.OrderByDescending(box => box.Confidence).First();
             shiftX = aRCamera.shiftX;
             shiftY = aRCamera.shiftY;
             scaleFactor = aRCamera.scaleFactor;
@@ -111,21 +112,11 @@ public class AnchorCreator : MonoBehaviour
                 return;
             }
 
-            foreach (var outline in boxSavedOutlines)
+            var tuple = FindCenterXandY(actualBox);
+
+            if (CreateAnchorInPosition(tuple.Item1, tuple.Item2, actualBox))
             {
-                if (outline.Used)
-                {
-                    continue;
-                }
-
-                var tuple = FindCenterXandY(outline);
-
-                if (CreateAnchorInPosition(tuple.Item1, tuple.Item2, outline))
-                {
-                    outline.Used = true;
-                }
-
-                break;
+                actualBox.Used = true;
             }
         }
     }
@@ -152,7 +143,7 @@ public class AnchorCreator : MonoBehaviour
         {
             foreach (KeyValuePair<ARAnchor, BoundingBox> pair in anchorDic)
             {
-                if (!boxSavedOutlines.Contains(pair.Value))
+                if (actualBox.Equals(pair.Value))
                 {
                     anchorDic.Remove(pair.Key);
                     m_AnchorManager.RemoveAnchor(pair.Key);
@@ -164,7 +155,7 @@ public class AnchorCreator : MonoBehaviour
 
     private bool NoBoudingBoxesFound()
     {
-        return boxSavedOutlines.Count == 0;
+        return actualBox == null;
     }
 
     private bool NotDetectedYet()

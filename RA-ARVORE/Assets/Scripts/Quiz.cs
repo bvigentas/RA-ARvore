@@ -20,7 +20,7 @@ public class Quiz : MonoBehaviour
         for (var i = 0; i < hints.Length; i++)
         {
             var hint = hints[i].GetComponent<TextMeshPro>();
-            var input = inputs[i].GetComponent<TMP_InputField>();
+            var input = inputs[i].GetComponent<TextMeshPro>();
 
             if (!string.Equals(RemoveAccents(hint.text), RemoveAccents(input.text), StringComparison.InvariantCultureIgnoreCase))
             {

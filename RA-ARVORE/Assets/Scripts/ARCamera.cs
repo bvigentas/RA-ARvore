@@ -27,6 +27,9 @@ public class ARCamera : MonoBehaviour
     private static Texture2D boxOutlineTexture;
     private static GUIStyle labelStyle;
     private IList<BoundingBox> boxOutlinesFromThisFrame;
+
+    public BoundingBox actualBoudingBox;
+    
     private GameObject buttonInformation;
     private GameObject buttonScreenshot;
     private GameObject buttonValidate;
@@ -67,7 +70,8 @@ public class ARCamera : MonoBehaviour
         localization = false;
         searched = false;
         staticNum = 0;
-        boxOutlinesFromAllFrames.Clear();
+        //boxOutlinesFromAllFrames.Clear();
+        actualBoudingBox = null;
         boxOutlinesFromThisFrame.Clear();
         AnchorCreator anchorCreator = FindObjectOfType<AnchorCreator>();
         anchorCreator.RemoveAllAnchors();
@@ -236,34 +240,24 @@ public class ARCamera : MonoBehaviour
     //Método que filtra bouding boxes adicionando e filtrando as bouding boxes de vários frames. 
     private void GroupBoxOutlines()
     {
-        if (this.boxOutlinesFromAllFrames.Count == 0)
+        if (this.boxOutlinesFromThisFrame != null && this.boxOutlinesFromThisFrame.Count > 0)
         {
-            if (this.boxOutlinesFromThisFrame == null || this.boxOutlinesFromThisFrame.Count == 0)
-            {
-                return;
-            }
-            foreach (var outline in this.boxOutlinesFromThisFrame)
-            {
-                this.boxOutlinesFromAllFrames.Add(outline);
-            }
-            return;
-        }
+            actualBoudingBox = this.boxOutlinesFromThisFrame.OrderByDescending(box => box.Confidence).First();
 
-        bool addOutline = false;
-        foreach (var outline1 in this.boxOutlinesFromThisFrame)
-        {
+            bool addOutline = false;
+
             bool unique = true;
             var boxCopy = this.boxOutlinesFromAllFrames;
-            foreach (var outline2 in boxCopy)
+            foreach (var boxSaved in boxCopy)
             {
 
-                if (IsSameObject(outline1, outline2))
+                if (IsSameObject(actualBoudingBox, boxSaved))
                 {
                     unique = false;
-                    if (outline1.Confidence > outline2.Confidence + 0.05F)
+                    if (actualBoudingBox.Confidence > boxSaved.Confidence + 0.05F)
                     {
-                        this.boxOutlinesFromAllFrames.Remove(outline2);
-                        this.boxOutlinesFromAllFrames.Add(outline1);
+                        this.boxOutlinesFromAllFrames.Remove(boxSaved);
+                        this.boxOutlinesFromAllFrames.Add(actualBoudingBox);
                         addOutline = true;
                         staticNum = 0;
                         break;
@@ -275,12 +269,12 @@ public class ARCamera : MonoBehaviour
             {
                 addOutline = true;
                 staticNum = 0;
-                this.boxOutlinesFromAllFrames.Add(outline1);
+                this.boxOutlinesFromAllFrames.Add(actualBoudingBox);
             }
-        }
-        if (!addOutline)
-        {
-            staticNum += 1;
+            if (!addOutline)
+            {
+                staticNum += 1;
+            }
         }
 
 
