@@ -8,63 +8,52 @@ using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using System.Collections;
 using UnityEngine.XR.ARFoundation.Samples;
+using UnityEngine.XR.ARCore;
 
 public class ARCamera : MonoBehaviour
 {
-    private IList<Detector.BoundingBox> boxOutlines;
-    public List<Detector.BoundingBox> boxSavedOutlines = new List<Detector.BoundingBox>();
-    private int staticNum = 0;
-    private bool isDetecting = false;
-    public bool localization = false;
-    public bool searched = false;
-    public Detector detector;
+    public string foundedLeafString;
     public float shiftY = 0f;
     public float shiftX = 0f;
     public float scaleFactor = 1;
+    public bool localization = false;
+    public bool searched = false;
+    private bool isDetecting = false;
+    private int staticNum = 0;
+
+    public Detector detector;
+    public List<BoundingBox> boxOutlinesFromAllFrames = new List<BoundingBox>();
     public Color colorTag = new Color(0.3843137f, 0, 0.9333333f);
     private static Texture2D boxOutlineTexture;
     private static GUIStyle labelStyle;
-    public string foundedLeafString;
+    private IList<BoundingBox> boxOutlinesFromThisFrame;
 
-    public string GetMostConfidentBoudingBoxName()
-    {
-        var name = "";
-        var bestConf = 0.0;
-
-        foreach (var box in this.boxOutlines)
-        {
-            if (box.Confidence > bestConf)
-            {
-                bestConf = box.Confidence;
-                name = box.Label;
-            }
-        }
-
-        return name;
-    }
+    public BoundingBox actualBoudingBox;
+    
+    private GameObject buttonInformation;
+    private GameObject buttonScreenshot;
+    private GameObject buttonValidate;
 
     Texture2D m_CameraTexture;
-
-    [SerializeField]
-    ARCameraManager m_CameraManager;
-
+    [SerializeField] ARCameraManager m_CameraManager;
     public ARCameraManager cameraManager
     {
         get => m_CameraManager;
         set => m_CameraManager = value;
     }
 
-    [SerializeField]
-    RawImage m_RawImage;
-
+    [SerializeField] RawImage m_RawImage;
     public RawImage rawImage
     {
         get { return m_RawImage; }
         set { m_RawImage = value; }
     }
 
-    GameObject buttonInfo;
-    GameObject buttonScreenshot;
+    public string GetMostConfidentBoudingBoxName()
+    {
+        var box = this.boxOutlinesFromThisFrame.OrderByDescending(box => box.Confidence).First();
+        return box.Label;
+    }
 
     void OnDisable()
     {
@@ -74,22 +63,27 @@ public class ARCamera : MonoBehaviour
         }
     }
 
+
+    //Método responsável por resetar componentes ao restartar a aplicação.
     public void OnRefresh()
     {
-        Debug.Log("DEBUG: onRefresh, removing anchors and boundingboxes");
         localization = false;
         searched = false;
         staticNum = 0;
-        // clear boubding box containers
-        boxSavedOutlines.Clear();
-        boxOutlines.Clear();
-        // clear anchor
+        //boxOutlinesFromAllFrames.Clear();
+        actualBoudingBox = null;
+        boxOutlinesFromThisFrame.Clear();
         AnchorCreator anchorCreator = FindObjectOfType<AnchorCreator>();
         anchorCreator.RemoveAllAnchors();
-        buttonInfo.SetActive(false);
+        buttonInformation.SetActive(false);
         buttonScreenshot.SetActive(false);
+        buttonValidate.SetActive(false);
+
+        ARSession arSession = GetComponent<ARSession>();
+        arSession.Reset();
     }
 
+    //Realiza configurações iniciais ao começar a aplicação.
     void OnEnable()
     {
         if (m_CameraManager != null)
@@ -100,8 +94,9 @@ public class ARCamera : MonoBehaviour
         boxOutlineTexture = new Texture2D(1, 1);
         boxOutlineTexture.SetPixel(0, 0, this.colorTag);
         boxOutlineTexture.Apply();
-        buttonInfo = GameObject.Find("ButtonLeafInformation");
+        buttonInformation = GameObject.Find("ButtonLeafInformation");
         buttonScreenshot = GameObject.Find("ButtonScreenshot");
+        buttonValidate = GameObject.Find("ButtonValidar");
 
         labelStyle = new GUIStyle();
         labelStyle.fontSize = 50;
@@ -140,6 +135,39 @@ public class ARCamera : MonoBehaviour
             return;
         }
 
+        PreProcessCurrentImageFrame(image);
+
+        if (DetectionIsStable())
+        {
+            localization = true;
+            EnableButtons();
+
+            if (!searched && this.boxOutlinesFromThisFrame != null && this.boxOutlinesFromThisFrame.Count >= 0)
+            {
+                foundedLeafString = GetMostConfidentBoudingBoxName();
+            }
+        }
+        else
+        {
+            DisableButtons();
+
+            if (this.isDetecting)
+            {
+                return;
+            }
+
+            StartToDetect();
+
+            GroupBoxOutlines();
+        }
+
+        m_RawImage.texture = m_CameraTexture;
+    }
+
+
+    //Faz alguns processamentos iniciais na imagem, convertento a imagem em uma textura RGB para  ser processada mais facilmente para a rotina de detecção.
+    private unsafe void PreProcessCurrentImageFrame(XRCpuImage image)
+    {
         var format = TextureFormat.RGBA32;
 
         if (m_CameraTexture == null || m_CameraTexture.width != image.width || m_CameraTexture.height != image.height)
@@ -159,59 +187,42 @@ public class ARCamera : MonoBehaviour
         }
 
         m_CameraTexture.Apply();
-
-        if (staticNum > 5)
-        {
-            localization = true;
-            buttonInfo.SetActive(true);
-            buttonScreenshot.SetActive(true);
-
-            if (!searched && this.boxOutlines != null && this.boxOutlines.Count >= 0)
-            {
-                foundedLeafString = GetMostConfidentBoudingBoxName();
-                UpdateInfoPanel(foundedLeafString);
-            }
-        }
-        else
-        {
-            buttonInfo.SetActive(false);
-            buttonScreenshot.SetActive(false);
-
-            if (this.isDetecting)
-            {
-                return;
-            }
-
-            this.isDetecting = true;
-            StartCoroutine(ProcessImage(this.detector.IMAGE_SIZE, result =>
-            {
-                StartCoroutine(this.detector.Detect(result, boxes =>
-                {
-                    this.boxOutlines = boxes;
-                    Resources.UnloadUnusedAssets();
-                    this.isDetecting = false;
-                }));
-            }));
-
-            GroupBoxOutlines();
-        }
-        m_RawImage.texture = m_CameraTexture;
     }
 
-    private void UpdateInfoPanel(string formatoFolha)
+    private bool DetectionIsStable()
     {
-        Text tipoFolha = GameObject.Find("TX_Tipo_Folha").GetComponent<Text>();
-        Text informacoesFolha = GameObject.Find("TX_Informacoes").GetComponent<Text>();
-        Text arvoresFolha = GameObject.Find("TX_Arvores").GetComponent<Text>();
+        return staticNum > 5;
+    }
 
-        FolhaService service = GameObject.Find("WebService").GetComponent<FolhaService>();
-        Folha arvore =  service.getArvoreInfo(formatoFolha);
+    private unsafe void EnableButtons()
+    {
+        buttonInformation.SetActive(true);
+        buttonScreenshot.SetActive(true);
+        if (Configurations.quizMode)
+        {
+            buttonValidate.SetActive(true);
+        }
+    }
 
-        tipoFolha.text = arvore.tipo_folha;
-        informacoesFolha.text = arvore.informacoes_folha;
-        arvoresFolha.text = arvore.arvores_folha;
+    private unsafe void DisableButtons()
+    {
+        buttonInformation.SetActive(false);
+        buttonScreenshot.SetActive(false);
+        buttonValidate.SetActive(false);
+    }
 
-        searched = true;
+    private unsafe void StartToDetect()
+    {
+        this.isDetecting = true;
+        StartCoroutine(ProcessImage(this.detector.IMAGE_SIZE, result =>
+        {
+            StartCoroutine(this.detector.Detect(result, boxes =>
+            {
+                this.boxOutlinesFromThisFrame = boxes;
+                Resources.UnloadUnusedAssets();
+                this.isDetecting = false;
+            }));
+        }));
     }
 
     private IEnumerator ProcessImage(int inputSize, System.Action<Color32[]> callback)
@@ -226,96 +237,77 @@ public class ARCamera : MonoBehaviour
         yield return croped;
     }
 
+    //Método que filtra bouding boxes adicionando e filtrando as bouding boxes de vários frames. 
     private void GroupBoxOutlines()
     {
-        // if savedoutlines is empty, add current frame outlines if possible.
-        if (this.boxSavedOutlines.Count == 0)
+        if (this.boxOutlinesFromThisFrame != null && this.boxOutlinesFromThisFrame.Count > 0)
         {
-            // no bounding boxes in current frame
-            if (this.boxOutlines == null || this.boxOutlines.Count == 0)
-            {
-                return;
-            }
-            // deep copy current frame bounding boxes
-            foreach (var outline in this.boxOutlines)
-            {
-                this.boxSavedOutlines.Add(outline);
-            }
-            return;
-        }
+            actualBoudingBox = this.boxOutlinesFromThisFrame.OrderByDescending(box => box.Confidence).First();
 
-        // adding current frame outlines to existing savedOulines and merge if possible.
-        bool addOutline = false;
-        foreach (var outline1 in this.boxOutlines)
-        {
+            bool addOutline = false;
+
             bool unique = true;
-            var boxCopy = this.boxSavedOutlines;
-            foreach (var outline2 in boxCopy)
+            var boxCopy = this.boxOutlinesFromAllFrames;
+            foreach (var boxSaved in boxCopy)
             {
-                // if two bounding boxes are for the same object, use high confidnece one
-                if (IsSameObject(outline1, outline2))
+
+                if (IsSameObject(actualBoudingBox, boxSaved))
                 {
                     unique = false;
-                    if (outline1.Confidence > outline2.Confidence + 0.05F) //& outline2.Confidence < 0.5F)
+                    if (actualBoudingBox.Confidence > boxSaved.Confidence + 0.05F)
                     {
-                        Debug.Log("DEBUG: add detected boxes in this frame.");
-                        Debug.Log($"DEBUG: Add Label: {outline1.Label}. Confidence: {outline1.Confidence}.");
-                        Debug.Log($"DEBUG: Remove Label: {outline2.Label}. Confidence: {outline2.Confidence}.");
-
-                        this.boxSavedOutlines.Remove(outline2);
-                        this.boxSavedOutlines.Add(outline1);
+                        this.boxOutlinesFromAllFrames.Remove(boxSaved);
+                        this.boxOutlinesFromAllFrames.Add(actualBoudingBox);
                         addOutline = true;
                         staticNum = 0;
                         break;
                     }
                 }
             }
-            // if outline1 in current frame is unique, add it permanently
+
             if (unique)
             {
-                Debug.Log($"DEBUG: add detected boxes in this frame");
                 addOutline = true;
                 staticNum = 0;
-                this.boxSavedOutlines.Add(outline1);
-                Debug.Log($"Add Label: {outline1.Label}. Confidence: {outline1.Confidence}.");
+                this.boxOutlinesFromAllFrames.Add(actualBoudingBox);
             }
-        }
-        if (!addOutline)
-        {
-            staticNum += 1;
+            if (!addOutline)
+            {
+                staticNum += 1;
+            }
         }
 
-        // merge same bounding boxes
-        // remove will cause duplicated bounding box?
-        List<Detector.BoundingBox> temp = new List<Detector.BoundingBox>();
-        foreach (var outline1 in this.boxSavedOutlines)
-        {
-            if (temp.Count == 0)
-            {
-                temp.Add(outline1);
-                continue;
-            }
-            foreach (var outline2 in temp.ToList())
-            {
-                if (IsSameObject(outline1, outline2))
-                {
-                    if (outline1.Confidence > outline2.Confidence)
-                    {
-                        temp.Remove(outline2);
-                        temp.Add(outline1);
-                        Debug.Log("DEBUG: merge bounding box conflict!!!");
-                    }
-                }
-                else
-                {
-                    temp.Add(outline1);
-                }
-            }
-        }
-        this.boxSavedOutlines = temp;
+
+        //List<BoundingBox> temp = new List<BoundingBox>();
+        //foreach (var outline1 in this.boxOutlinesFromAllFrames)
+        //{
+        //    if (temp.Count == 0)
+        //    {
+        //        temp.Add(outline1);
+        //        continue;
+        //    }
+        //    foreach (var outline2 in temp.ToList())
+        //    {
+        //        if (IsSameObject(outline1, outline2))
+        //        {
+        //            if (outline1.Confidence > outline2.Confidence)
+        //            {
+        //                temp.Remove(outline2);
+        //                temp.Add(outline1);
+        //                Debug.Log("DEBUG: merge bounding box conflict!!!");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            temp.Add(outline1);
+        //        }
+        //    }
+        //}
+        //this.boxOutlinesFromAllFrames = temp;
     }
 
-    private bool IsSameObject(Detector.BoundingBox outline1, Detector.BoundingBox outline2)
+    //Compara dois objetos para ver se são iguais, caso for o que tem o maior score de confidence é utilizado.
+    private bool IsSameObject(BoundingBox outline1, BoundingBox outline2)
     {
         var xMin1 = outline1.Dimensions.X * this.scaleFactor + this.shiftX;
         var width1 = outline1.Dimensions.Width * this.scaleFactor;
@@ -341,53 +333,27 @@ public class ARCamera : MonoBehaviour
 
     public void OnGUI()
     {
-        // Do not draw bounding boxes after localization.
         if (localization)
         {
             return;
         }
 
-        if (this.boxSavedOutlines != null && this.boxSavedOutlines.Any())
+        if (this.boxOutlinesFromAllFrames != null && this.boxOutlinesFromAllFrames.Any())
         {
-            foreach (var outline in this.boxSavedOutlines)
-            {
-                DrawBoxOutline(outline, scaleFactor, shiftX, shiftY);
-            }
+            var box = this.boxOutlinesFromAllFrames.OrderByDescending(box => box.Confidence).First();
+            DrawLocalizingText($"Mantenha-se estável.\n Localizando {box.Label}: {(int)(box.Confidence * 100)}%");
         }
     }
 
-    private void DrawBoxOutline(Detector.BoundingBox outline, float scaleFactor, float shiftX, float shiftY)
+    private static void DrawLocalizingText(string text)
     {
-        var x = outline.Dimensions.X * scaleFactor + shiftX;
-        var width = outline.Dimensions.Width * scaleFactor;
-        var y = outline.Dimensions.Y * scaleFactor + shiftY;
-        var height = outline.Dimensions.Height * scaleFactor;
-
-        DrawRectangle(new Rect(x, y, width, height), 10, this.colorTag);
-        DrawLabel(new Rect(x, y - 80, 200, 20), $"Localizing {outline.Label}: {(int)(outline.Confidence * 100)}%");
-    }
-
-    public static void DrawRectangle(Rect area, int frameWidth, Color color)
-    {
-        Rect lineArea = area;
-        lineArea.height = frameWidth;
-        GUI.DrawTexture(lineArea, boxOutlineTexture); // Top line
-
-        lineArea.y = area.yMax - frameWidth;
-        GUI.DrawTexture(lineArea, boxOutlineTexture); // Bottom line
-
-        lineArea = area;
-        lineArea.width = frameWidth;
-        GUI.DrawTexture(lineArea, boxOutlineTexture); // Left line
-
-        lineArea.x = area.xMax - frameWidth;
-        GUI.DrawTexture(lineArea, boxOutlineTexture); // Right line
-    }
-
-
-    private static void DrawLabel(Rect position, string text)
-    {
-        GUI.Label(position, text, labelStyle);
+        GUI.color = Color.blue;
+        GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "");
+        GUI.color = Color.white;
+        var centeredStyle = GUI.skin.GetStyle("Label");
+        centeredStyle.alignment = TextAnchor.MiddleCenter;
+        centeredStyle.fontSize = 50;
+        GUI.Label(new Rect(Screen.width / 2 - 250, Screen.height / 2 - 100, 500, 200), text, centeredStyle);
     }
 
     private Texture2D Scale(Texture2D texture, int imageSize)
