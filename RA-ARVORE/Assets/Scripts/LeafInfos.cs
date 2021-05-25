@@ -30,7 +30,10 @@ public class LeafInfos : MonoBehaviour
         folha.informacoes_folha = info;
         folha.tipo_folha = tipo;
 
-        leafs.Add(tipo.ToLower(), folha);
+        if (!leafs.ContainsKey(tipo.ToLower())) 
+        { 
+            leafs.Add(tipo.ToLower(), folha);
+        }
     }
 
     public static Folha GetFolha(string tipo)

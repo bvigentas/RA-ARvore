@@ -33,7 +33,7 @@ public class AnchorCreator : MonoBehaviour
     private float scaleFactor;
     private bool modelAlreadyRendered;
     private UIManager m_uiManager;
-    static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
+    static List<ARRaycastHit> resultHits = new List<ARRaycastHit>();
 
     List<string> dicPreFab = new List<string>();
     IDictionary<ARAnchor, BoundingBox> anchorDic = new Dictionary<ARAnchor, BoundingBox>();
@@ -53,7 +53,7 @@ public class AnchorCreator : MonoBehaviour
         {
             Destroy(anchor.Key.gameObject);
         }
-        s_Hits.Clear();
+        resultHits.Clear();
         anchorDic.Clear();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
@@ -147,7 +147,7 @@ public class AnchorCreator : MonoBehaviour
                 {
                     anchorDic.Remove(pair.Key);
                     m_AnchorManager.RemoveAnchor(pair.Key);
-                    s_Hits.Clear();
+                    resultHits.Clear();
                 }
             }
         }
@@ -175,7 +175,7 @@ public class AnchorCreator : MonoBehaviour
 
         if (VerifyIfPointIntersectsWithPlanes(x, y, trackableTypes))
         {
-            var hit = s_Hits[0];
+            var hit = resultHits[0];
             var anchor = CreateAnchor(hit);
             if (anchor)
             {
@@ -191,7 +191,7 @@ public class AnchorCreator : MonoBehaviour
 
     private bool VerifyIfPointIntersectsWithPlanes(float x, float y, TrackableType trackableTypes)
     {
-        return m_RaycastManager.Raycast(new Vector2(x, y), s_Hits, trackableTypes);
+        return m_RaycastManager.Raycast(new Vector2(x, y), resultHits, trackableTypes);
     }
 
     private void SaveAnchor(BoundingBox outline, ARAnchor anchor)

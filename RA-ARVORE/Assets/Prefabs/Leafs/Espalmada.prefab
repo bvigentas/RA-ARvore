@@ -1614,6 +1614,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: Leaf_Espalmada
       objectReference: {fileID: 0}
+    - target: {fileID: 3751941277511033136, guid: 288206ee2a65c3a4e8e8e27ca5659dff,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4005698801476507092, guid: 288206ee2a65c3a4e8e8e27ca5659dff,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6477672294081722682, guid: 288206ee2a65c3a4e8e8e27ca5659dff,
         type: 3}
       propertyPath: m_OnSelectEntered.m_PersistentCalls.m_Calls.Array.size

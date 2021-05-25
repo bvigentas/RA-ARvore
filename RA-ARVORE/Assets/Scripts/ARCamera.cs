@@ -276,34 +276,6 @@ public class ARCamera : MonoBehaviour
                 staticNum += 1;
             }
         }
-
-
-        //List<BoundingBox> temp = new List<BoundingBox>();
-        //foreach (var outline1 in this.boxOutlinesFromAllFrames)
-        //{
-        //    if (temp.Count == 0)
-        //    {
-        //        temp.Add(outline1);
-        //        continue;
-        //    }
-        //    foreach (var outline2 in temp.ToList())
-        //    {
-        //        if (IsSameObject(outline1, outline2))
-        //        {
-        //            if (outline1.Confidence > outline2.Confidence)
-        //            {
-        //                temp.Remove(outline2);
-        //                temp.Add(outline1);
-        //                Debug.Log("DEBUG: merge bounding box conflict!!!");
-        //            }
-        //        }
-        //        else
-        //        {
-        //            temp.Add(outline1);
-        //        }
-        //    }
-        //}
-        //this.boxOutlinesFromAllFrames = temp;
     }
 
     //Compara dois objetos para ver se são iguais, caso for o que tem o maior score de confidence é utilizado.
