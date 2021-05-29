@@ -72,7 +72,7 @@ public class AnchorCreator : MonoBehaviour
         GameObject canvas = GameObject.Find("Canvas");
         m_uiManager = canvas.GetComponent<UIManager>();
 
-        dicPreFab.Add("trofolio");
+        dicPreFab.Add("trifoliolada");
         dicPreFab.Add("tripinulada");
         dicPreFab.Add("bipinulada");
         dicPreFab.Add("codiforme");

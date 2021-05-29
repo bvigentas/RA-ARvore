@@ -20,7 +20,7 @@ public class LeafInfos : MonoBehaviour
         BuildFolha("Deltoide", "Caracterizada pelo formato triangular.", "É presente no Espinafre da Nova Zelândia.");
         BuildFolha("Orbicular", "Caracterizada pelo formato circular.", "A Capuchinha é um exemplo de folha Orbicular.");
         BuildFolha("Romboide", "Caracterizada pelo formato de diamante.", "É presenta na árvore Hibisco.");
-        BuildFolha("Trofolio", "Estrutura caracterizada por ter exatamente 3 folhas.", "A folha de feijão é um exemplo de Trifólio.");
+        BuildFolha("Trifoliolada", "Estrutura caracterizada por ter exatamente 3 folhas.", "A folha de feijão é um exemplo de Trifólio.");
     }
 
     public void BuildFolha(string tipo, string info, string arvores)
