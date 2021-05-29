@@ -421,7 +421,7 @@ GameObject:
   - component: {fileID: 6783526090075533732}
   - component: {fileID: 7226625904115060699}
   m_Layer: 0
-  m_Name: Input
+  m_Name: Input (4)
   m_TagString: LeafInput
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2368,7 +2368,7 @@ GameObject:
   - component: {fileID: 5933727086279249329}
   - component: {fileID: 8031816685334409220}
   m_Layer: 0
-  m_Name: Input (1)
+  m_Name: Input
   m_TagString: LeafInput
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3171,7 +3171,8 @@ PrefabInstance:
       propertyPath: m_OnSelectEntered.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2744805185447592300, guid: 1d0ad515d5b01eb48b2f8f68ee81d14b, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 1d0ad515d5b01eb48b2f8f68ee81d14b, type: 3}
 --- !u!1 &7540369243920657398 stripped
 GameObject:
