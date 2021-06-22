@@ -74,7 +74,7 @@ public class AnchorCreator : MonoBehaviour
 
         dicPreFab.Add("trifoliolada");
         dicPreFab.Add("tripinulada");
-        dicPreFab.Add("bipinulada");
+        dicPreFab.Add("bipinada");
         dicPreFab.Add("codiforme");
         dicPreFab.Add("flabelada");
         dicPreFab.Add("orbicular");
@@ -84,9 +84,9 @@ public class AnchorCreator : MonoBehaviour
         dicPreFab.Add("lobada");
         dicPreFab.Add("cuneiforme");
         dicPreFab.Add("linear");
-        dicPreFab.Add("ovada");
+        dicPreFab.Add("elíptica");
         dicPreFab.Add("pinulada");
-        dicPreFab.Add("espalmada");
+        dicPreFab.Add("palmatífida");
         dicPreFab.Add("acicular");
 
     }

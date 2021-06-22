@@ -1,6 +1,6 @@
 trifoliolada
-bipinulada
-bipinulada
+bipinada
+bipinada
 codiforme
 flabelada
 orbicular
@@ -10,7 +10,7 @@ deltoide
 lobada
 cuneiforme
 linear
-ovada
+elíptica
 pinulada
-espalmada
+palmatífida
 acicular
