@@ -23,7 +23,7 @@ Com as imagens dos datasets selecionadas, iniciou-se o processo de _image labeli
   
 Com o dataset etiquetado, se iniciou o treinamento dele através do notebook do google colab criado por [The AI Guy](https://colab.research.google.com/drive/1Mh2HP_Mfxoao6qNFbhfV3u28tG8jAVGk). O notebook realiza o treinamento de um modelo de machine learning utilizando o YOLO a partir de uma série de inputs, como o dataset, as etiquetas das imagens no dataset, e arquivos de configuração do yolo. Ao final, o processo, que pode vir a demorar horas, da como output um modelo de machine learning no formato do yolo, o weights. Como o Barracuda permite apenas modelos no formato onnx, o arquivo de output do notebook é então convertido para onnx através de outro notebook rodando o código do [repositório do usuário zombie0117](https://github.com/zombie0117/yolov3-tiny-onnx-TensorRT). Enfim, após esse passo, o modelo está pronto para ser importado no Barracuda.
 
-## Importação do proejto
+## Importação do projeto
 
 - Importe e abra o projeto no Unity 2020.2.5f1.
 - Ao abrir o projeto, todas as dependências devem ser resolvidas automaticamente. Entretanto pode ocorrer do pacote do Barracuda não ser encontrado. Neste caso faça o download do pacote neste [LINK](https://drive.google.com/file/d/1oFz3Wp8JN8eiXvkbVCddeuJjX7WS7cG9/view?usp=sharing) e o importe manualmente com os passos abaixo:
