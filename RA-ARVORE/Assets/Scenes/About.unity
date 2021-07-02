@@ -576,9 +576,8 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Aplicativo para auxiliar a busca de conhecimento sobre \xE1rvores e suas
-    folhas atrav\xE9s do reconhecimento de diferentes formatos de folhas e intera\xE7\xF5es
-    com Realidade Aumentada."
+  m_Text: "Aplicativo para auxiliar a busca de folhas de plantas atrav\xE9s do reconhecimento
+    de diferentes formatos de folhas e intera\xE7\xF5es com Realidade Aumentada."
 --- !u!222 &999309066
 CanvasRenderer:
   m_ObjectHideFlags: 0

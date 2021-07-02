@@ -9,9 +9,9 @@ public class LeafInfos : MonoBehaviour
 
     public void Start()
     {
-        BuildFolha("Palmatífida", "Recebe este nome por parecer uma mão aberta.", "É presente em árvores como o Carvalho e o Bordo.");
+        BuildFolha("Palmatifida", "Recebe este nome por parecer uma mão aberta.", "É presente em árvores como o Carvalho e o Bordo.");
         BuildFolha("Acicular", "Caracterizada pela forma delgada e fina, como uma agulha.", "É presente em diversas espécies de pinheiro como no Pinus Elliottii, no Pinheiro Silvestre e na Araucaria Angustifolia.");
-        BuildFolha("Elíptica", "Folha mais larga na porção mediana.", "É presente em árvores como a Laranjeira");
+        BuildFolha("Eliptica", "Folha mais larga na porção mediana.", "É presente em árvores como a Laranjeira");
         BuildFolha("Multilobada", "Folha que se divide em diversas partes, também chamados de  lóbolos.", "É presente em alguns tipos de pinheiros, como a Tuia Holandesa.");
         BuildFolha("Bipinada", "Folha composta pinada onde cada um dos folíolos também são compostos, gerando um padrão recorrente.", "É presente nas Árvores como Cambuí e Sibipiruna.");
         BuildFolha("Pinulada", "Estrutura composta por vários folíolos(Subdivisões das folhas). Podendo ser ímpar ou par dependendo da quantidade de folíolos.", "É presente nas Árvores como Tamarindo e Tipuana.");

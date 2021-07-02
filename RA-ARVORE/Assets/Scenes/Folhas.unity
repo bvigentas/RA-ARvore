@@ -3886,7 +3886,7 @@ MonoBehaviour:
   - Deltoide
   - Orbicular
   - Romboide
-  - Trofolio
+  - Trifoliolada
   images:
   - {fileID: 2127401045}
   - {fileID: 1055082311}
@@ -4685,7 +4685,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Trofolio
+          m_StringArgument: Trifoliolada
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &2047639405

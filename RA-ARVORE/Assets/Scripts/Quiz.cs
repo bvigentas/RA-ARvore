@@ -8,13 +8,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 using System.Globalization;
+using System.Linq;
 
 public class Quiz : MonoBehaviour
 {
     public void buttonValidate()
     {
         var hints = Configurations.hints;
-        var inputs = GameObject.FindGameObjectsWithTag("LeafInput");
+        var inputs = GameObject.FindGameObjectsWithTag("LeafInput").OrderBy(obj => obj.name).ToArray();
         var erros = new List<string>();
 
         for (var i = 0; i < hints.Length; i++)
