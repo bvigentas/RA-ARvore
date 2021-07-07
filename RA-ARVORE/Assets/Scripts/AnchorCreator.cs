@@ -84,9 +84,9 @@ public class AnchorCreator : MonoBehaviour
         dicPreFab.Add("lobada");
         dicPreFab.Add("cuneiforme");
         dicPreFab.Add("linear");
-        dicPreFab.Add("elíptica");
+        dicPreFab.Add("eliptica");
         dicPreFab.Add("pinulada");
-        dicPreFab.Add("palmatífida");
+        dicPreFab.Add("palmatifida");
         dicPreFab.Add("acicular");
 
     }

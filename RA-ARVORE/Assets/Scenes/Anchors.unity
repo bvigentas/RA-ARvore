@@ -3665,7 +3665,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: VERIFRICAR
+  m_Text: VALIDAR
 --- !u!222 &1727419844
 CanvasRenderer:
   m_ObjectHideFlags: 0

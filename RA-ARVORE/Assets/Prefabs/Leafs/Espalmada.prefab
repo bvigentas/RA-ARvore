@@ -1624,6 +1624,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5113203136126819916, guid: 288206ee2a65c3a4e8e8e27ca5659dff,
+        type: 3}
+      propertyPath: m_Name
+      value: Text (TMP) (1)
+      objectReference: {fileID: 0}
     - target: {fileID: 6477672294081722682, guid: 288206ee2a65c3a4e8e8e27ca5659dff,
         type: 3}
       propertyPath: m_OnSelectEntered.m_PersistentCalls.m_Calls.Array.size
