@@ -1594,6 +1594,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Leaf_romboide
       objectReference: {fileID: 0}
+    - target: {fileID: 6879413993584699771, guid: f915c1d6910628b4d80027870fedd29e,
+        type: 3}
+      propertyPath: m_Name
+      value: Text (TMP) (1)
+      objectReference: {fileID: 0}
     - target: {fileID: 7573571309731851912, guid: f915c1d6910628b4d80027870fedd29e,
         type: 3}
       propertyPath: m_OnSelectEntered.m_PersistentCalls.m_Calls.Array.size
